@@ -1,6 +1,9 @@
 
 #include "protocol.h"
 #include "math.h"
+#include "appl.h"
+#include <windom.h>
+#include <gem.h>
 
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
@@ -88,6 +91,7 @@ void screen_beep(void)
  */
 void screen_clear(void)
 {
+  /* appl_clear_screen(); */
 }
 
 /**
@@ -95,20 +99,30 @@ void screen_clear(void)
  */
 void screen_block_draw(padPt* Coord1, padPt* Coord2)
 {
-  int y;
+  short pxyarray[4];
+  
+  pxyarray[0]=scalex[Coord1->x];
+  pxyarray[1]=scaley[Coord1->y];
+  pxyarray[2]=scalex[Coord2->x];
+  pxyarray[3]=scaley[Coord2->y];
+
   // initial naive implementation, draw a bunch of horizontal lines the size of bounding box.
+
+  vsf_interior(app.aeshdl,1); // Solid interior
+  
   if (CurMode==ModeErase || CurMode==ModeInverse)
     {
-      // bm_setforeground(COLOR_LTBLUE);
+      vsf_color(app.aeshdl,0); // white
+      vswr_mode(app.aeshdl,0); // White
     }
   else
     {
-      // bm_setforeground(COLOR_WHITE);
+      vsf_color(app.aeshdl,1); // black
+      vswr_mode(app.aeshdl,1); // replace
     }
-  for (y=Coord1->y;y<Coord2->y;y++)
-    {
-      // bm_drawline(scalex[Coord1->x],scaley[y],scalex[Coord2->x],scaley[y]);
-    }
+
+  v_bar(app.aeshdl,pxyarray);
+
 }
 
 /**
@@ -116,17 +130,25 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
  */
 void screen_dot_draw(padPt* Coord)
 {
+  short pxyarray[4];
+
+  pxyarray[0]=Coord->x;
+  pxyarray[1]=Coord->y;
+  pxyarray[2]=Coord->x;
+  pxyarray[3]=Coord->y;
+
   if (CurMode==ModeErase || CurMode==ModeInverse)
     {
-      // bm_setforeground(COLOR_LTBLUE);
+      vsf_color(app.aeshdl,0); // white
+      vswr_mode(app.aeshdl,0); // White
     }
   else
     {
-      // bm_setforeground(COLOR_WHITE);
+      vsf_color(app.aeshdl,1); // black
+      vswr_mode(app.aeshdl,1); // replace
     }
-  
-  // bm_setpixel(scalex[Coord->x],scaley[Coord->y]);
 
+  v_pline(app.aeshdl,2,pxyarray);
 }
 
 /**
@@ -134,22 +156,25 @@ void screen_dot_draw(padPt* Coord)
  */
 void screen_line_draw(padPt* Coord1, padPt* Coord2)
 {
-  unsigned short x1=scalex[Coord1->x];
-  unsigned short x2=scalex[Coord2->x];
-  unsigned short y1=scaley[Coord1->y];
-  unsigned short y2=scaley[Coord2->y];
-  
-  if (CurMode==ModeErase || CurMode==ModeInverse)
+  short pxyarray[4];
+
+  pxyarray[0]=scalex[Coord1->x];
+  pxyarray[1]=scaley[Coord1->y];
+  pxyarray[2]=scalex[Coord2->x];
+  pxyarray[3]=scaley[Coord2->y];
+
+   if (CurMode==ModeErase || CurMode==ModeInverse)
     {
-      // bm_setforeground(COLOR_LTBLUE);
+      vsl_color(app.aeshdl,0); // white
+      vswr_mode(app.aeshdl,0); // White
     }
   else
     {
-      // bm_setforeground(COLOR_WHITE);
+      vsl_color(app.aeshdl,1); // black
+      vswr_mode(app.aeshdl,1); // replace
     }
 
-  // bm_drawline(x1,y1,x2,y2);
-
+   v_pline(app.aeshdl,2,pxyarray);
 }
 
 /**
@@ -174,6 +199,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   unsigned char altColor=0;
   unsigned char *p;
   unsigned char* curfont;
+  short pxyarray[4];
   
   switch(CurMem)
     {
@@ -239,6 +265,11 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   	      if (b<0) /* check sign bit. */
 		{
 		  // bm_setforeground(mainColor);
+		  pxyarray[0]=x;
+		  pxyarray[1]=y;
+		  pxyarray[2]=x;
+		  pxyarray[3]=y;
+		  v_pline(app.aeshdl,2,pxyarray);
 		  // bm_setpixel(x,y);
 		}
 
@@ -306,6 +337,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 		  // bm_setforeground(mainColor);
 		  if (ModeBold)
 		    {
+		      
 		      // bm_setpixel(*px+1,*py);
 		      // bm_setpixel(*px,*py+1);
 		      // bm_setpixel(*px+1,*py+1);
