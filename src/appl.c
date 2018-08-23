@@ -5,9 +5,12 @@
 #include "appl.h"
 #include "protocol.h"
 #include "screen.h"
+#include "screen_queue.h"
+#include <osbind.h>
 
 extern unsigned char splash[];
 extern short splash_size;
+extern DrawElement* screen_queue;
 
 int16_t magic_os=FALSE;                // Are we running under MagiC?
 int16_t mint_os=FALSE;                 // Are we running under MINT?
@@ -17,6 +20,21 @@ int16_t appl_atari_med_res=FALSE;      // Are we in Atari Med Res (640x200?)
 int16_t appl_atari_low_res=FALSE;      // Are we in Atari Low Res (640x200?)
 WINDOW* win;
 MFDB* terminal_bitmap;
+
+static void appl_redraw(WINDOW* win,short wbuff[8])
+{
+  short xw, yw, ww, hw; // Window dimensions
+  short xy[8];
+
+  WindGet(win, WF_WORKXYWH, &xw, &yw, &ww, &hw);
+  
+  wind_update(BEG_UPDATE);
+  appl_clear_screen();
+  v_show_c(app.aeshdl,1);
+  screen_redraw();
+  wind_update(END_UPDATE);
+
+}
 
 /**
  * Initialize the application context
@@ -33,14 +51,19 @@ void applinit(void)
   full_screen=appl_get_fullscreen();
     
   // Create the window.
-  win = WindCreate( NAME|MOVER|CLOSER, app.x, app.y, app.w, app.h);
+  if (full_screen==TRUE)
+    win=WindCreate(0,app.x,app.y,app.w,app.h);
+  else
+    win = WindCreate( NAME|MOVER|CLOSER, app.x, app.y, app.w, app.h);
+  
   if (full_screen==TRUE)
     WindOpen( win, app.x, app.y, app.x+app.w, app.y+app.h);
   else
     WindOpen( win, app.x, app.y, 512, 512);
   WindSetStr( win, WF_NAME, "PLATOTerm ST");
 
-  appl_fullscreen();
+  EvntAttach(win,WM_REDRAW,appl_redraw);
+  
 }
 
 /**
@@ -48,6 +71,9 @@ void applinit(void)
  */
 void applmain(void)
 {
+  appl_clear_screen();
+  ShowPLATO((padByte *)splash,splash_size);
+  
   for (;;)
     EvntWindom( MU_MESAG|MU_TIMER|MU_KEYBD|MU_BUTTON);
 }
@@ -58,7 +84,6 @@ void applmain(void)
 void appl_restore_screen( void)
 {
 	form_dial( FMD_FINISH, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
-	menu_bar( app.menu, 1) ;
 	v_show_c( app.aeshdl, 0);
 }
 
@@ -90,13 +115,8 @@ void appl_fullscreen(void)
   MFDB 	*out, resized_out = { NULL, screenw, screenh, 0, 0, 0, 0, 0, 0}, screen = {0};
   short	posx, posy, xy[8];
   short pxy[4];
-  
+
   appl_clear_screen();
-  wind_update(BEG_UPDATE);
-  ShowPLATO((padByte *)splash,1777);
-  evnt_keybd();
-  appl_restore_screen();
-  wind_update(END_UPDATE);
   
 }
 

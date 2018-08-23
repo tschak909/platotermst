@@ -12,6 +12,7 @@ extern padByte splash[];
 
 int main(void)
 {
+  screen_init();
   applinit();
   applmain();  
 }

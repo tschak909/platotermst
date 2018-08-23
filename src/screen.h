@@ -12,6 +12,7 @@
 
 #include <stdbool.h>
 #include "protocol.h"
+#include "screen_queue.h"
 
 /**
  * screen_init() - Set up the screen
@@ -98,5 +99,15 @@ void screen_tty_char(padByte theChar);
  * Close down TGI
  */
 void screen_done(void);
+
+/**
+ * Do next redraw
+ */
+void screen_next_redraw(DrawElement* element);
+
+/**
+ * screen_redraw()
+ */
+void screen_redraw(void);
 
 #endif /* SCREEN_H */

@@ -1,13 +1,15 @@
 
 #include "protocol.h"
-#include "screen_queue.h"
 #include "math.h"
 #include "appl.h"
+#include "screen.h"
 #include <windom.h>
 #include <gem.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <osbind.h>
+#include <bits/string2.h>
 
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
@@ -29,6 +31,7 @@ extern unsigned char FONT_SIZE_Y;
  */
 void screen_init(void)
 {
+  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
 }
 
 /**
@@ -189,7 +192,9 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
 
    v_pline(app.aeshdl,2,pxyarray);
    if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0);
+     {
+       screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0);
+     }
 }
 
 /**
@@ -302,7 +307,10 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
     }
 
   if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord->x,Coord->y,0,0,strdup(ch),count);
+    {
+      char* chptr=strdup(ch);
+      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
+    }
 
   return;
 
@@ -392,7 +400,10 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
     }
 
   if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord->x,Coord->y,0,0,strdup(ch),count);
+    {
+      char* chptr=strdup(ch);
+      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
+    }
 
   return;
   
@@ -439,4 +450,53 @@ void screen_tty_char(padByte theChar)
  */
 void screen_done(void)
 {
+}
+
+/**
+ * Do next redraw
+ */
+void screen_next_redraw(DrawElement* element)
+{
+  padPt coord1, coord2;
+  
+  switch(element->mode)
+    {
+    case SCREEN_QUEUE_DOT:
+      coord1.x = element->x1;
+      coord1.y = element->y1;
+      screen_dot_draw(&coord1,false);
+      break;
+    case SCREEN_QUEUE_LINE:
+      coord1.x = element->x1;
+      coord1.y = element->y1;
+      coord2.x = element->x1;
+      coord2.y = element->y1;
+      screen_line_draw(&coord1,&coord2,false);
+      break;
+    case SCREEN_QUEUE_CHAR:
+      coord1.x = element->x1;
+      coord1.y = element->y1;
+      screen_char_draw(&coord1,element->ch,element->chlen,false);
+      break;
+    case SCREEN_QUEUE_BLOCK_ERASE:
+      coord1.x = element->x1;
+      coord1.y = element->y1;
+      coord2.x = element->x2;
+      coord2.y = element->y2;
+      screen_block_draw(&coord1,&coord2,false);
+      break;
+    }
+}
+
+/**
+ * screen_redraw()
+ */
+void screen_redraw(void)
+{
+  DrawElement* cursor = screen_queue;
+  while(cursor != NULL)
+    {
+      screen_next_redraw(cursor);
+      cursor=cursor->next;
+    }  
 }
