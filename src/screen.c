@@ -218,30 +218,24 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
  */
 void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool queue)
 {
-  short offset; /* due to negative offsets */
-  unsigned short x;      /* Current X and Y coordinates */
-  unsigned short y;
-  unsigned short* px;   /* Pointers to X and Y coordinates used for actual plotting */
-  unsigned short* py;
-  unsigned char i; /* current character counter */
-  unsigned char a; /* current character byte */
-  unsigned char j,k; /* loop counters */
-  char b; /* current character row bit signed */
-  unsigned char width=FONT_SIZE_X;
-  unsigned char height=FONT_SIZE_Y;
-  unsigned short deltaX=1;
-  unsigned short deltaY=1;
-  unsigned char mainColor=1;
-  unsigned char altColor=0;
-  unsigned char *p;
+  unsigned char* queued_ch;
+  short color_index[2]={1,0};
   unsigned char* curfont;
-  short pxyarray[4];
-  char* chptr;
-
-  // Create copy of character buffer, if queuing up.
-  if (queue==TRUE)
-    chptr=screen_strndup(ch,count);
+  char offset;
+  short x,y;
+  unsigned char i;
+  MFDB screen_mfdb = {0};
+  MFDB char_mfdb;
+  unsigned char current_char;
+  unsigned char* current_char_ptr;
+  short pxyarray[8];
   
+  if (queue==true)
+    {
+      queued_ch=screen_strndup(ch,count);
+      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,queued_ch,count);
+    }
+
   switch(CurMem)
     {
     case M0:
@@ -262,168 +256,43 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
       break;
     }
 
-  if (CurMode==ModeRewrite)
+  // Flip color settings for inverse.
+  if (CurMode==ModeInverse)
     {
-      altColor=0;
+      color_index[0]=0;
+      color_index[1]=1;
     }
-  else if (CurMode==ModeInverse)
-    {
-      altColor=1;
-    }
-  
-  if (CurMode==ModeErase || CurMode==ModeInverse)
-    mainColor=0;
-  else
-    mainColor=1;
-
-  // bm_setforeground(mainColor);
 
   x=scalex[(Coord->x&0x1FF)];
   y=scaley[(Coord->y)+14&0x1FF];
-  
-  if (FastText==padF)
-    {
-      goto chardraw_with_fries;
-    }
 
-  y=scaley[(Coord->y)+14&0x1FF];
-
-  /* the diet chardraw routine - fast text output. */
-  
   for (i=0;i<count;++i)
     {
-      a=*ch;
+      current_char=*ch;
       ++ch;
-      a+=offset;
-      p=&curfont[fontptr[a]];
+      current_char+=offset;
+      current_char_ptr=&curfont[fontptr[current_char]];
       
-      for (j=0;j<FONT_SIZE_Y;++j)
-  	{
-  	  b=*p;
-	  
-  	  for (k=0;k<FONT_SIZE_X;++k)
-  	    {
-  	      if (b<0) /* check sign bit. */
-		{
-		  // bm_setforeground(mainColor);
-		  pxyarray[0]=x;
-		  pxyarray[1]=y;
-		  pxyarray[2]=x;
-		  pxyarray[3]=y;
-		  v_pline(app.aeshdl,2,pxyarray);
-		  // bm_setpixel(x,y);
-		}
+      char_mfdb.fd_addr=current_char_ptr;
+      char_mfdb.fd_w=0;
+      char_mfdb.fd_h=0;
+      char_mfdb.fd_wdwidth=1;
+      char_mfdb.fd_stand=0;
+      char_mfdb.fd_nplanes=1;
+      char_mfdb.fd_r1=char_mfdb.fd_r2=char_mfdb.fd_r3=0;
 
-	      ++x;
-  	      b<<=1;
-  	    }
-
-	  ++y;
-	  x-=width;
-	  ++p;
-  	}
-
-      x+=width;
-      y-=height;
-    }
-
-  if (queue==true)
-    {
-      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
-    }
-
-  return;
-
- chardraw_with_fries:
-  if (Rotate)
-    {
-      deltaX=-abs(deltaX);
-      width=-abs(width);
-      px=&y;
-      py=&x;
-    }
-    else
-    {
-      px=&x;
-      py=&y;
+      pxyarray[0]=0;
+      pxyarray[1]=0;
+      pxyarray[2]=7;
+      pxyarray[3]=11;
+      pxyarray[4]=x;
+      pxyarray[5]=y;
+      pxyarray[6]=x+7;
+      pxyarray[7]=x+11;
+      x+=FONT_SIZE_X;
+      vrt_cpyfm(app.aeshdl,1,pxyarray,&char_mfdb,&screen_mfdb,color_index);
     }
   
-  if (ModeBold)
-    {
-      deltaX = deltaY = 2;
-      width<<=1;
-      height<<=1;
-    }
-  
-  for (i=0;i<count;++i)
-    {
-      a=*ch;
-      ++ch;
-      a+=offset;
-      p=&curfont[fontptr[a]];
-      for (j=0;j<FONT_SIZE_Y;++j)
-  	{
-  	  b=*p;
-
-	  if (Rotate)
-	    {
-	      px=&y;
-	      py=&x;
-	    }
-	  else
-	    {
-	      px=&x;
-	      py=&y;
-	    }
-
-  	  for (k=0;k<FONT_SIZE_X;++k)
-  	    {
-  	      if (b<0) /* check sign bit. */
-		{
-		  // bm_setforeground(mainColor);
-		  if (ModeBold)
-		    {
-		      
-		      // bm_setpixel(*px+1,*py);
-		      // bm_setpixel(*px,*py+1);
-		      // bm_setpixel(*px+1,*py+1);
-		    }
-		  // bm_setpixel(*px,*py);
-		}
-	      else
-		{
-		  if (CurMode==ModeInverse || CurMode==ModeRewrite)
-		    {
-		      // bm_setforeground(altColor);
-		      if (ModeBold)
-			{
-			  // bm_setpixel(*px+1,*py);
-			  // bm_setpixel(*px,*py+1);
-			  // bm_setpixel(*px+1,*py+1);
-			}
-		      // bm_setpixel(*px,*py); 
-		    }
-		}
-
-	      x += deltaX;
-  	      b<<=1;
-  	    }
-
-	  y+=deltaY;
-	  x-=width;
-	  ++p;
-  	}
-
-      Coord->x+=width;
-      x+=width;
-      y-=height;
-    }
-
-  if (queue==true)
-    {
-      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
-    }
-
   return;
   
 }
