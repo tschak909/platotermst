@@ -27,6 +27,21 @@ extern unsigned char FONT_SIZE_X;
 extern unsigned char FONT_SIZE_Y;
 
 /**
+ * screen_strndup(ch, count) - duplicate character data.
+ */
+char* screen_strndup(unsigned char* ch, unsigned char count)
+{
+  char* ret=calloc((char)count,sizeof(char));
+
+  if (ret==NULL)
+    return NULL;
+
+  memcpy(ret,ch,count);
+  return ret;
+  
+}
+
+/**
  * screen_init() - Set up the screen
  */
 void screen_init(void)
@@ -102,6 +117,7 @@ void screen_clear(void)
 {
   /* appl_clear_screen(); */
   screen_queue_dispose(screen_queue);
+  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
 }
 
 /**
@@ -164,7 +180,7 @@ void screen_dot_draw(padPt* Coord, bool queue)
   v_pline(app.aeshdl,2,pxyarray);
 
   if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord->x,Coord->y,0,0,NULL,0);
+    screen_queue_append(screen_queue,SCREEN_QUEUE_DOT,Coord->x,Coord->y,0,0,NULL,0);
 }
 
 /**
@@ -193,7 +209,7 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
    v_pline(app.aeshdl,2,pxyarray);
    if (queue==true)
      {
-       screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0);
+       screen_queue_append(screen_queue,SCREEN_QUEUE_LINE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0);
      }
 }
 
@@ -220,6 +236,11 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   unsigned char *p;
   unsigned char* curfont;
   short pxyarray[4];
+  char* chptr;
+
+  // Create copy of character buffer, if queuing up.
+  if (queue==TRUE)
+    chptr=screen_strndup(ch,count);
   
   switch(CurMem)
     {
@@ -308,7 +329,6 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
 
   if (queue==true)
     {
-      char* chptr=strdup(ch);
       screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
     }
 
@@ -401,7 +421,6 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
 
   if (queue==true)
     {
-      char* chptr=strdup(ch);
       screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
     }
 
@@ -469,8 +488,8 @@ void screen_next_redraw(DrawElement* element)
     case SCREEN_QUEUE_LINE:
       coord1.x = element->x1;
       coord1.y = element->y1;
-      coord2.x = element->x1;
-      coord2.y = element->y1;
+      coord2.x = element->x2;
+      coord2.y = element->y2;
       screen_line_draw(&coord1,&coord2,false);
       break;
     case SCREEN_QUEUE_CHAR:
@@ -498,5 +517,5 @@ void screen_redraw(void)
     {
       screen_next_redraw(cursor);
       cursor=cursor->next;
-    }  
+    }
 }

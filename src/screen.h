@@ -20,6 +20,11 @@
 void screen_init(void);
 
 /**
+ * screen_strndup(ch, count) - duplicate character data.
+ */
+char* screen_strndup(unsigned char* ch, unsigned char count);
+
+/**
  * screen_load_driver()
  * Load the TGI driver
  */

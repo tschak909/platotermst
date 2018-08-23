@@ -93,16 +93,28 @@ void appl_restore_screen( void)
 void appl_clear_screen(void)
 {
   short xy[8];
-  
-  vswr_mode( app.aeshdl, MD_REPLACE);
-  form_dial( FMD_START, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
-  vsf_perimeter( app.aeshdl, 0);
-  vsf_interior( app.aeshdl, FIS_SOLID);
-  xy[0] = xy[1] = 0;
-  xy[2] = app.work_out[0];
-  xy[3] = app.work_out[1];
-  vsf_color( app.aeshdl, 0); // Needs to be white.
-  vr_recfl( app.aeshdl, xy);
+  short xw,yw,ww,hw;
+
+  if (full_screen==true)
+    {
+      vswr_mode( app.aeshdl, MD_REPLACE);
+      form_dial( FMD_START, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
+      vsf_perimeter( app.aeshdl, 0);
+      vsf_interior( app.aeshdl, FIS_SOLID);
+      xy[0] = xy[1] = 0;
+      xy[2] = app.work_out[0];
+      xy[3] = app.work_out[1];
+    }
+  else // Windowed.
+    {
+      WindGet(win, WF_WORKXYWH, &xw, &yw, &ww, &hw);
+      xy[0]=xw;
+      xy[1]=yw;
+      xy[2]=ww;
+      xy[3]=hw;
+    }
+      vsf_color( app.aeshdl, 0); // Needs to be white.
+      vr_recfl( app.aeshdl, xy);
 }
 
 /**
