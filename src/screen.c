@@ -1,13 +1,19 @@
 
 #include "protocol.h"
+#include "screen_queue.h"
 #include "math.h"
 #include "appl.h"
 #include <windom.h>
 #include <gem.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
 padPt TTYLoc;
+DrawElement* screen_queue=NULL;
+
 extern padBool FastText; /* protocol.c */
 extern unsigned short scalex[];
 extern unsigned short scaley[];
@@ -92,12 +98,13 @@ void screen_beep(void)
 void screen_clear(void)
 {
   /* appl_clear_screen(); */
+  screen_queue_dispose(screen_queue);
 }
 
 /**
  * screen_block_draw(Coord1, Coord2) - Perform a block fill from Coord1 to Coord2
  */
-void screen_block_draw(padPt* Coord1, padPt* Coord2)
+void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue)
 {
   short pxyarray[4];
   
@@ -122,13 +129,16 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
     }
 
   v_bar(app.aeshdl,pxyarray);
-
+  
+  if (queue==true)
+    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0);
+  
 }
 
 /**
  * screen_dot_draw(Coord) - Plot a mode 0 pixel
  */
-void screen_dot_draw(padPt* Coord)
+void screen_dot_draw(padPt* Coord, bool queue)
 {
   short pxyarray[4];
 
@@ -149,12 +159,15 @@ void screen_dot_draw(padPt* Coord)
     }
 
   v_pline(app.aeshdl,2,pxyarray);
+
+  if (queue==true)
+    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord->x,Coord->y,0,0,NULL,0);
 }
 
 /**
  * screen_line_draw(Coord1, Coord2) - Draw a mode 1 line
  */
-void screen_line_draw(padPt* Coord1, padPt* Coord2)
+void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
 {
   short pxyarray[4];
 
@@ -175,12 +188,14 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
     }
 
    v_pline(app.aeshdl,2,pxyarray);
+   if (queue==true)
+    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0);
 }
 
 /**
  * screen_char_draw(Coord, ch, count) - Output buffer from ch* of length count as PLATO characters
  */
-void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
+void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool queue)
 {
   short offset; /* due to negative offsets */
   unsigned short x;      /* Current X and Y coordinates */
@@ -286,6 +301,9 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
       y-=height;
     }
 
+  if (queue==true)
+    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord->x,Coord->y,0,0,strdup(ch),count);
+
   return;
 
  chardraw_with_fries:
@@ -373,6 +391,9 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
       y-=height;
     }
 
+  if (queue==true)
+    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord->x,Coord->y,0,0,strdup(ch),count);
+
   return;
   
 }
@@ -383,7 +404,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 void screen_tty_char(padByte theChar)
 {
   if ((theChar >= 0x20) && (theChar < 0x7F)) {
-    screen_char_draw(&TTYLoc, &theChar, 1);
+    screen_char_draw(&TTYLoc, &theChar, 1, true);
     TTYLoc.x += CharWide;
   }
   else if ((theChar == 0x0b)) /* Vertical Tab */

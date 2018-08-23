@@ -52,10 +52,10 @@ extern padByte terminal_ext_in(void);
 extern void screen_wait(void);
 extern void screen_beep(void);
 extern void io_send_byte(unsigned char b);
-extern void screen_block_draw(padPt* Coord1, padPt* Coord2);
-extern void screen_dot_draw(padPt* Coord);
-extern void screen_line_draw(padPt* Coord1, padPt* Coord2);
-extern void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count);
+extern void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue);
+extern void screen_dot_draw(padPt* Coord, bool queue);
+extern void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue);
+extern void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool queue);
 extern void screen_tty_char(padByte theChar);
 extern void terminal_mem_load(padWord addr, padWord value);
 extern void terminal_char_load(padWord charnum, charData theChar);
@@ -435,7 +435,7 @@ Blockx (void)
   else
     {
       LoadCoordx (&NewCoord);
-      screen_block_draw (&CurCoord, &NewCoord);
+      screen_block_draw (&CurCoord, &NewCoord, true);
       SubMode = 0;
     }
 }
@@ -444,7 +444,7 @@ void
 Pointx (void)
 {
   LoadCoordx (&CurCoord);
-  screen_dot_draw (&CurCoord);
+  screen_dot_draw (&CurCoord, true);
 }
 
 void
@@ -462,7 +462,7 @@ Linex (void)
       OldCoord.y = CurCoord.y;
       OldCoord.x = CurCoord.x;
       LoadCoordx (&CurCoord);
-      screen_line_draw (&OldCoord, &CurCoord);
+      screen_line_draw (&OldCoord, &CurCoord, true);
     }
 }
 
@@ -475,7 +475,7 @@ Alphax (void)
   HTx ();
   if (charCount >= BSIZE)
     {
-      screen_char_draw (&charCoord, charBuff, charCount);
+      screen_char_draw (&charCoord, charBuff, charCount, true);
       charCount = 0;
     }
 }
@@ -915,7 +915,7 @@ ShowPLATO (padByte *buff, unsigned short count)
 	    {
 	      if (charCount > 0)
 		{
-		  screen_char_draw (&charCoord, charBuff, charCount);
+		  screen_char_draw (&charCoord, charBuff, charCount, true);
 		  charCount = 0;
 		}
 	      switch (theChar)
@@ -964,7 +964,7 @@ ShowPLATO (padByte *buff, unsigned short count)
     }
   if (charCount > 0)
     {
-      screen_char_draw (&charCoord, charBuff, charCount);
+      screen_char_draw (&charCoord, charBuff, charCount, true);
       charCount = 0;
     }
 }

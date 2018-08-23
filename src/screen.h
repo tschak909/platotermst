@@ -10,6 +10,7 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include <stdbool.h>
 #include "protocol.h"
 
 /**
@@ -70,22 +71,22 @@ void screen_clear(void);
 /**
  * screen_block_draw(Coord1, Coord2) - Perform a block fill from Coord1 to Coord2
  */
-void screen_block_draw(padPt* Coord1, padPt* Coord2);
+void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue);
 
 /**
  * screen_dot_draw(Coord) - Plot a mode 0 pixel
  */
-void screen_dot_draw(padPt* Coord);
+void screen_dot_draw(padPt* Coord, bool queue);
 
 /**
  * screen_line_draw(Coord1, Coord2) - Draw a mode 1 line
  */
-void screen_line_draw(padPt* Coord1, padPt* Coord2);
+void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue);
 
 /**
  * screen_char_draw(Coord, ch, count) - Output buffer from ch* of length count as PLATO characters
  */
-void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count);
+void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool queue);
 
 /**
  * screen_tty_char - Called to plot chars when in tty mode
