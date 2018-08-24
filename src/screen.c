@@ -16,6 +16,8 @@ unsigned char CharHigh=16;
 padPt TTYLoc;
 DrawElement* screen_queue=NULL;
 
+unsigned char char_buff[280];
+
 extern padBool FastText; /* protocol.c */
 extern unsigned short scalex[];
 extern unsigned short scaley[];
@@ -25,6 +27,9 @@ extern unsigned char fontm23[];
 extern unsigned short fontptr[];
 extern unsigned char FONT_SIZE_X;
 extern unsigned char FONT_SIZE_Y;
+extern unsigned short full_screen;
+extern unsigned short window_x;
+extern unsigned short window_y;
 
 /**
  * screen_strndup(ch, count) - duplicate character data.
@@ -42,11 +47,35 @@ char* screen_strndup(unsigned char* ch, unsigned char count)
 }
 
 /**
+ * screen_x() - Get screen X coordinates
+ */
+short screen_x(short x)
+{
+  if (full_screen==true)
+    return scalex[x];
+  else
+    return scalex[x]+window_x;
+}
+
+/**
+ * screen_y() - Get screen Y coordinates
+ */
+short screen_y(short y)
+{
+  if (full_screen==true)
+    return scaley[y];
+  else
+    return scaley[y]+window_y;
+}
+
+
+/**
  * screen_init() - Set up the screen
  */
 void screen_init(void)
 {
   screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
+  
 }
 
 /**
@@ -62,37 +91,6 @@ void screen_load_driver(void)
  * Called after tgi_init to set any special features, e.g. nmi trampolines.
  */
 void screen_init_hook(void)
-{
-}
-
-/**
- * screen_cycle_foreground()
- * Go to the next foreground color in palette
- */
-void screen_cycle_foreground(void)
-{
-}
-
-/**
- * screen_cycle_background()
- * Go to the next background color in palette
- */
-void screen_cycle_background(void)
-{
-}
-
-/**
- * screen_cycle_border()
- * Go to the next border color in palette
- */
-void screen_cycle_border(void)
-{
-}
-
-/**
- * screen_update_colors() - Set the terminal colors
- */
-void screen_update_colors(void)
 {
 }
 
@@ -115,7 +113,7 @@ void screen_beep(void)
  */
 void screen_clear(void)
 {
-  /* appl_clear_screen(); */
+  appl_clear_screen();
   screen_queue_dispose(screen_queue);
   screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
 }
@@ -127,10 +125,10 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue)
 {
   short pxyarray[4];
   
-  pxyarray[0]=scalex[Coord1->x];
-  pxyarray[1]=scaley[Coord1->y];
-  pxyarray[2]=scalex[Coord2->x];
-  pxyarray[3]=scaley[Coord2->y];
+  pxyarray[0]=screen_x(Coord1->x);
+  pxyarray[1]=screen_y(Coord1->y);
+  pxyarray[2]=screen_x(Coord2->x);
+  pxyarray[3]=screen_y(Coord2->y);
 
   // initial naive implementation, draw a bunch of horizontal lines the size of bounding box.
 
@@ -146,7 +144,7 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue)
       vsf_color(app.aeshdl,1); // black
       vswr_mode(app.aeshdl,1); // replace
     }
-
+  
   v_bar(app.aeshdl,pxyarray);
   
   if (queue==true)
@@ -161,10 +159,10 @@ void screen_dot_draw(padPt* Coord, bool queue)
 {
   short pxyarray[4];
 
-  pxyarray[0]=Coord->x;
-  pxyarray[1]=Coord->y;
-  pxyarray[2]=Coord->x;
-  pxyarray[3]=Coord->y;
+  pxyarray[0]=screen_x(Coord->x);
+  pxyarray[1]=screen_y(Coord->y);
+  pxyarray[2]=screen_x(Coord->x);
+  pxyarray[3]=screen_y(Coord->y);
 
   if (CurMode==ModeErase || CurMode==ModeInverse)
     {
@@ -177,6 +175,7 @@ void screen_dot_draw(padPt* Coord, bool queue)
       vswr_mode(app.aeshdl,1); // replace
     }
 
+  
   v_pline(app.aeshdl,2,pxyarray);
 
   if (queue==true)
@@ -190,10 +189,10 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
 {
   short pxyarray[4];
 
-  pxyarray[0]=scalex[Coord1->x];
-  pxyarray[1]=scaley[Coord1->y];
-  pxyarray[2]=scalex[Coord2->x];
-  pxyarray[3]=scaley[Coord2->y];
+  pxyarray[0]=screen_x(Coord1->x);
+  pxyarray[1]=screen_y(Coord1->y);
+  pxyarray[2]=screen_x(Coord2->x);
+  pxyarray[3]=screen_y(Coord2->y);
 
    if (CurMode==ModeErase || CurMode==ModeInverse)
     {
@@ -206,6 +205,7 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
       vswr_mode(app.aeshdl,1); // replace
     }
 
+   
    v_pline(app.aeshdl,2,pxyarray);
    if (queue==true)
      {
@@ -218,24 +218,30 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
  */
 void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool queue)
 {
-  unsigned char* queued_ch;
-  short color_index[2]={1,0};
+  short offset; /* due to negative offsets */
+  unsigned short x;      /* Current X and Y coordinates */
+  unsigned short y;
+  unsigned short* px;   /* Pointers to X and Y coordinates used for actual plotting */
+  unsigned short* py;
+  unsigned char i; /* current character counter */
+  unsigned char a; /* current character byte */
+  unsigned char j,k; /* loop counters */
+  char b; /* current character row bit signed */
+  unsigned char width=FONT_SIZE_X;
+  unsigned char height=FONT_SIZE_Y;
+  unsigned short deltaX=1;
+  unsigned short deltaY=1;
+  unsigned char mainColor=1;
+  unsigned char altColor=0;
+  unsigned char *p;
   unsigned char* curfont;
-  char offset;
-  short x,y;
-  unsigned char i;
-  MFDB screen_mfdb = {0};
-  MFDB char_mfdb;
-  unsigned char current_char;
-  unsigned char* current_char_ptr;
-  short pxyarray[8];
-  
-  if (queue==true)
-    {
-      queued_ch=screen_strndup(ch,count);
-      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,queued_ch,count);
-    }
+  short pxyarray[4];
+  char* chptr;
 
+  // Create copy of character buffer, if queuing up.
+  if (queue==TRUE)
+    chptr=screen_strndup(ch,count);
+  
   switch(CurMem)
     {
     case M0:
@@ -256,45 +262,197 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
       break;
     }
 
-  // Flip color settings for inverse.
-  if (CurMode==ModeInverse)
+  if (CurMode==ModeRewrite)
     {
-      color_index[0]=0;
-      color_index[1]=1;
+      altColor=0;
+    }
+  else if (CurMode==ModeInverse)
+    {
+      altColor=1;
+    }
+  
+  if (CurMode==ModeErase || CurMode==ModeInverse)
+    mainColor=0;
+  else
+    mainColor=1;
+
+  // bm_setforeground(mainColor);
+
+  x=screen_x((Coord->x&0x1FF));
+  y=screen_y((Coord->y)+14&0x1FF);
+  
+  if (FastText==padF)
+    {
+      goto chardraw_with_fries;
     }
 
-  x=scalex[(Coord->x&0x1FF)];
-  y=scaley[(Coord->y)+14&0x1FF];
-
+  /* the diet chardraw routine - fast text output. */
+  
   for (i=0;i<count;++i)
     {
-      current_char=*ch;
+      a=*ch;
       ++ch;
-      current_char+=offset;
-      current_char_ptr=&curfont[fontptr[current_char]];
+      a+=offset;
+      p=&curfont[fontptr[a]];
       
-      char_mfdb.fd_addr=current_char_ptr;
-      char_mfdb.fd_w=0;
-      char_mfdb.fd_h=0;
-      char_mfdb.fd_wdwidth=1;
-      char_mfdb.fd_stand=0;
-      char_mfdb.fd_nplanes=1;
-      char_mfdb.fd_r1=char_mfdb.fd_r2=char_mfdb.fd_r3=0;
+      for (j=0;j<FONT_SIZE_Y;++j)
+  	{
+  	  b=*p;
+	  
+  	  for (k=0;k<FONT_SIZE_X;++k)
+  	    {
+  	      if (b<0) /* check sign bit. */
+		{
+		  pxyarray[0]=x;
+		  pxyarray[1]=y;
+		  pxyarray[2]=x;
+		  pxyarray[3]=y;
+		  v_pline(app.aeshdl,2,pxyarray);
+		}
 
-      pxyarray[0]=0;
-      pxyarray[1]=0;
-      pxyarray[2]=7;
-      pxyarray[3]=11;
-      pxyarray[4]=x;
-      pxyarray[5]=y;
-      pxyarray[6]=x+7;
-      pxyarray[7]=x+11;
-      x+=FONT_SIZE_X;
-      vrt_cpyfm(app.aeshdl,1,pxyarray,&char_mfdb,&screen_mfdb,color_index);
+	      ++x;
+  	      b<<=1;
+  	    }
+
+	  ++y;
+	  x-=width;
+	  ++p;
+  	}
+
+      x+=width;
+      y-=height;
+    }
+
+  if (queue==true)
+    {
+      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
+    }
+
+  return;
+
+ chardraw_with_fries:
+  if (Rotate)
+    {
+      deltaX=-abs(deltaX);
+      width=-abs(width);
+      px=&y;
+      py=&x;
+    }
+    else
+    {
+      px=&x;
+      py=&y;
     }
   
-  return;
+  if (ModeBold)
+    {
+      deltaX = deltaY = 2;
+      width<<=1;
+      height<<=1;
+    }
   
+  for (i=0;i<count;++i)
+    {
+      a=*ch;
+      ++ch;
+      a+=offset;
+      p=&curfont[fontptr[a]];
+      for (j=0;j<FONT_SIZE_Y;++j)
+  	{
+  	  b=*p;
+
+	  if (Rotate)
+	    {
+	      px=&y;
+	      py=&x;
+	    }
+	  else
+	    {
+	      px=&x;
+	      py=&y;
+	    }
+
+  	  for (k=0;k<FONT_SIZE_X;++k)
+  	    {
+  	      if (b<0) /* check sign bit. */
+		{
+		  // bm_setforeground(mainColor);
+		  if (ModeBold)
+		    {
+		      pxyarray[0]=*px+1;
+		      pxyarray[1]=*py;
+		      pxyarray[2]=*px+1;
+		      pxyarray[3]=*py;
+		      v_pline(app.aeshdl,2,pxyarray);
+		      pxyarray[0]=*px;
+		      pxyarray[1]=*py+1;
+		      pxyarray[2]=*px;
+		      pxyarray[3]=*py+1;
+		      v_pline(app.aeshdl,2,pxyarray);
+		      pxyarray[0]=*px+1;
+		      pxyarray[1]=*py+1;
+		      pxyarray[2]=*px+1;
+		      pxyarray[3]=*py+1;
+		      v_pline(app.aeshdl,2,pxyarray);		      
+		    }
+		  pxyarray[0]=*px;
+		  pxyarray[1]=*py;
+		  pxyarray[2]=*px;
+		  pxyarray[3]=*py;
+		  v_pline(app.aeshdl,2,pxyarray);
+
+		}
+	      else
+		{
+		  if (CurMode==ModeInverse || CurMode==ModeRewrite)
+		    {
+		      // bm_setforeground(altColor);
+		      if (ModeBold)
+			{
+			  pxyarray[0]=*px+1;
+			  pxyarray[1]=*py;
+			  pxyarray[2]=*px+1;
+			  pxyarray[3]=*py;
+			  v_pline(app.aeshdl,2,pxyarray);
+			  pxyarray[0]=*px;
+			  pxyarray[1]=*py+1;
+			  pxyarray[2]=*px;
+			  pxyarray[3]=*py+1;
+			  v_pline(app.aeshdl,2,pxyarray);
+			  pxyarray[0]=*px+1;
+			  pxyarray[1]=*py+1;
+			  pxyarray[2]=*px+1;
+			  pxyarray[3]=*py+1;
+			  v_pline(app.aeshdl,2,pxyarray);		      
+			}
+		      pxyarray[0]=*px;
+		      pxyarray[1]=*py;
+		      pxyarray[2]=*px;
+		      pxyarray[3]=*py;
+		      v_pline(app.aeshdl,2,pxyarray);		      
+		    }
+		}
+
+	      x += deltaX;
+  	      b<<=1;
+  	    }
+
+	  y+=deltaY;
+	  x-=width;
+	  ++p;
+  	}
+
+      Coord->x+=width;
+      x+=width;
+      y-=height;
+    }
+
+  if (queue==true)
+    {
+      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
+    }
+
+  return;
 }
 
 /**
@@ -388,3 +546,4 @@ void screen_redraw(void)
       cursor=cursor->next;
     }
 }
+

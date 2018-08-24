@@ -20,6 +20,16 @@
 void screen_init(void);
 
 /**
+ * screen_x() - Get screen X coordinates
+ */
+short screen_x(short x);
+
+/**
+ * screen_y() - Get screen Y coordinates
+ */
+short screen_y(short y);
+
+/**
  * screen_strndup(ch, count) - duplicate character data.
  */
 char* screen_strndup(unsigned char* ch, unsigned char count);

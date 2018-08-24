@@ -19,15 +19,17 @@ int16_t appl_atari_hi_res=FALSE;       // Are we in Atari Hi Res (640x400?)
 int16_t appl_atari_med_res=FALSE;      // Are we in Atari Med Res (640x200?)
 int16_t appl_atari_low_res=FALSE;      // Are we in Atari Low Res (640x200?)
 WINDOW* win;
-MFDB* terminal_bitmap;
+int16_t window_x, window_y;            // Window coordinates
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
   short xw, yw, ww, hw; // Window dimensions
   short xy[8];
 
-  WindGet(win, WF_WORKXYWH, &xw, &yw, &ww, &hw);
-  
+  wind_get(app.aeshdl,WF_WORKXYWH,&xw,&yw,&ww,&hw);
+  window_x=xw;
+  window_y=yw;
+
   wind_update(BEG_UPDATE);
   appl_clear_screen();
   v_show_c(app.aeshdl,1);
@@ -41,6 +43,7 @@ static void appl_redraw(WINDOW* win,short wbuff[8])
  */
 void applinit(void)
 {
+  short xw,yw,ww,hw;
   ApplInit();
 
   // Detect if we are under MagiC or MINT
@@ -52,7 +55,7 @@ void applinit(void)
     
   // Create the window.
   if (full_screen==TRUE)
-    win=WindCreate(0,app.x,app.y,app.w,app.h);
+    win=WindCreate(WAT_ALL,app.x,app.y,app.w,app.h);
   else
     win = WindCreate( NAME|MOVER|CLOSER, app.x, app.y, app.w, app.h);
   
@@ -62,6 +65,12 @@ void applinit(void)
     WindOpen( win, app.x, app.y, 512, 512);
   WindSetStr( win, WF_NAME, "PLATOTerm ST");
 
+  wind_get(app.aeshdl,WF_WORKXYWH,&xw,&yw,&ww,&hw);
+  window_x=xw;
+  window_y=yw;
+
+  FormAlert(1, "[x: %d y: %d w: %d h: %d][OK]",xw,yw,ww,hw);
+  
   EvntAttach(win,WM_REDRAW,appl_redraw);
   
 }
@@ -83,8 +92,8 @@ void applmain(void)
  */
 void appl_restore_screen( void)
 {
-	form_dial( FMD_FINISH, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
-	v_show_c( app.aeshdl, 0);
+  form_dial( FMD_FINISH, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
+  v_show_c( app.aeshdl, 0);
 }
 
 /**
@@ -107,14 +116,8 @@ void appl_clear_screen(void)
     }
   else // Windowed.
     {
-      WindGet(win, WF_WORKXYWH, &xw, &yw, &ww, &hw);
-      xy[0]=xw;
-      xy[1]=yw;
-      xy[2]=ww;
-      xy[3]=hw;
+      WindClear(win);
     }
-      vsf_color( app.aeshdl, 0); // Needs to be white.
-      vr_recfl( app.aeshdl, xy);
 }
 
 /**
