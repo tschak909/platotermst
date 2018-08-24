@@ -33,7 +33,6 @@ static void appl_redraw(WINDOW* win,short wbuff[8])
 
   wind_update(BEG_UPDATE);
   appl_clear_screen();
-  v_show_c(app.aeshdl,1);
   screen_redraw();
   wind_update(END_UPDATE);
 
@@ -70,16 +69,12 @@ void applinit(void)
   MenuBar(appl_get_tree(MAINMENU),1);
   menu_register(_AESapid, "PLATOTerm");
   
-  // Detect if we are under MagiC or MINT
-  magic_os = vq_magx();
-  mint_os = vq_mint();
-
   // Determine if we need to go full screen
   full_screen=appl_get_fullscreen();
     
   // Create the window.
   if (full_screen==TRUE)
-    win=WindCreate(WAT_ALL,app.x,app.y,app.w,app.h);
+    win=WindCreate(0,app.x,app.y,app.w,app.h);
   else
     win = WindCreate( NAME|MOVER|CLOSER, app.x, app.y, app.w, app.h);
   
@@ -150,10 +145,12 @@ void appl_clear_screen(void)
       vswr_mode( app.aeshdl, MD_REPLACE);
       form_dial( FMD_START, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
       vsf_perimeter( app.aeshdl, 0);
+      vsf_color(app.aeshdl, 0);
       vsf_interior( app.aeshdl, FIS_SOLID);
       xy[0] = xy[1] = 0;
       xy[2] = app.work_out[0];
       xy[3] = app.work_out[1];
+      vr_recfl(app.aeshdl,xy);
     }
   else // Windowed.
     {
