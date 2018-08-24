@@ -151,6 +151,7 @@ void appl_clear_screen(void)
       xy[2] = app.work_out[0];
       xy[3] = app.work_out[1];
       vr_recfl(app.aeshdl,xy);
+      menu_bar( app.menu, 0); // Disable menu bar in fullscreen.	
     }
   else // Windowed.
     {
@@ -163,14 +164,7 @@ void appl_clear_screen(void)
  */
 void appl_fullscreen(void)
 {
-  short	screenw = app.work_out[0] + 1;	// bottom-right X
-  short	screenh = app.work_out[1] + 1;	// bottom-right Y
-  MFDB 	*out, resized_out = { NULL, screenw, screenh, 0, 0, 0, 0, 0, 0}, screen = {0};
-  short	posx, posy, xy[8];
-  short pxy[4];
-
   appl_clear_screen();
-  
 }
 
 /**
