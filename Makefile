@@ -1,7 +1,9 @@
-TARGET_EXEC ?= platoterm.prg
+TARGET_EXEC ?= plato.prg
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
+
+RSCFILE = $(SRC_DIRS)/PLATO.RSC
 
 CC=m68k-atari-mint-gcc
 
@@ -19,6 +21,7 @@ CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	cp $(RSCFILE) $(BUILD_DIR)
 
 # assembly
 $(BUILD_DIR)/%.s.o: %.s

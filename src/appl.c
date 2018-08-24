@@ -20,13 +20,14 @@ int16_t appl_atari_med_res=FALSE;      // Are we in Atari Med Res (640x200?)
 int16_t appl_atari_low_res=FALSE;      // Are we in Atari Low Res (640x200?)
 WINDOW* win;
 int16_t window_x, window_y;            // Window coordinates
+int16_t appl_init_successful=FALSE;    // Application successfully initialized.
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
   short xw, yw, ww, hw; // Window dimensions
   short xy[8];
 
-  wind_get(app.aeshdl,WF_WORKXYWH,&xw,&yw,&ww,&hw);
+  WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
   window_x=xw;
   window_y=yw;
 
@@ -39,6 +40,17 @@ static void appl_redraw(WINDOW* win,short wbuff[8])
 }
 
 /**
+ * Usefull fonction to get object tree from resource.
+ */
+
+OBJECT* appl_get_tree( int index)
+{
+  OBJECT *tree;
+  rsrc_gaddr( 0, index, &tree);
+  return tree;
+}
+
+/**
  * Initialize the application context
  */
 void applinit(void)
@@ -46,6 +58,18 @@ void applinit(void)
   short xw,yw,ww,hw;
   ApplInit();
 
+  if (RsrcLoad("plato.rsc") == 0)
+    {
+      FormAlert(1, FA_ERROR "[Can not locate PLATO.RSC][Exit]");
+      ApplExit();
+      appl_init_successful=false;
+      return;
+    }
+
+  // Install menubar
+  MenuBar(appl_get_tree(MAINMENU),1);
+  menu_register(_AESapid, "PLATOTerm");
+  
   // Detect if we are under MagiC or MINT
   magic_os = vq_magx();
   mint_os = vq_mint();
@@ -63,16 +87,32 @@ void applinit(void)
     WindOpen( win, app.x, app.y, app.x+app.w, app.y+app.h);
   else
     WindOpen( win, app.x, app.y, 512, 512);
-  WindSetStr( win, WF_NAME, "PLATOTerm ST");
 
-  wind_get(app.aeshdl,WF_WORKXYWH,&xw,&yw,&ww,&hw);
+  WindSetStr( win, WF_NAME, "PLATOTerm ST");
+  
+  WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
   window_x=xw;
   window_y=yw;
 
-  FormAlert(1, "[x: %d y: %d w: %d h: %d][OK]",xw,yw,ww,hw);
-  
   EvntAttach(win,WM_REDRAW,appl_redraw);
+  EvntAttach(NULL, AP_TERM, appl_term);
+
+  ObjcAttachMenuFunc(NULL, MENU_ABOUT, appl_about, NULL);
   
+  appl_init_successful=true;
+  
+}
+
+/**
+ * show app about menu
+ */
+static void appl_about(WINDOW *null, int index, int title, void *data)
+{
+  OBJECT *aboutbox = appl_get_tree(FORM_ABOUT);
+  WINDOW *winabout = FormCreate(aboutbox, WAT_FORM, NULL, "About PLATOTERM", NULL, TRUE, FALSE);
+
+  WindSet(winabout, WF_BEVENT, BEVENT_MODAL, 0, 0, 0);
+  MenuDisable();
 }
 
 /**
@@ -85,6 +125,7 @@ void applmain(void)
   
   for (;;)
     EvntWindom( MU_MESAG|MU_TIMER|MU_KEYBD|MU_BUTTON);
+
 }
 
 /**
@@ -164,4 +205,26 @@ short appl_get_fullscreen(void)
 void appl_terminal_bitmap_init(void)
 {
   
+}
+
+/*
+ *	Close resources and cleanly quit application.
+ */
+static void __CDECL appl_term( WINDOW *win, short buff[8]) {
+	while( wglb.first) {
+		ApplWrite( _AESapid, WM_DESTROY, wglb.first->handle,0,0,0,0); 
+		EvntWindom( MU_MESAG);
+	}
+	RsrcXtype( 0, NULL, 0);
+	RsrcFree();
+	ApplExit();
+	exit(0);
+}
+
+/**
+ * Finish application
+ */
+void appldone(void)
+{
+  ApplExit();
 }
