@@ -66,7 +66,11 @@ void applinit(void)
 
   // Install menubar
   MenuBar(appl_get_tree(MAINMENU),1);
-  menu_register(_AESapid, "PLATOTerm");
+
+  /* Register application name in menu if possible */
+  if( _AESnumapps == -1)
+    menu_register( _AESapid, "  PLATOTerm ");
+
   
   // Determine if we need to go full screen
   full_screen=appl_get_fullscreen();
