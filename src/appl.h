@@ -6,6 +6,8 @@
 #define FORM_ABOUT 1
 #define MENU_ABOUT 7
 
+#define BUTTON_ABOUT_OK 1
+
 /**
  * Initialize the application context
  */
@@ -50,6 +52,11 @@ short appl_get_fullscreen(void);
  * Initialize the off-screen bitmap for terminal.
  */
 void appl_terminal_bitmap_init(void);
+
+/**
+ * close app about menu
+ */
+static void appl_about_close(WINDOW *win, int index, int mode, void *data);
 
 /**
  * show app about menu

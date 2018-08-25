@@ -35,7 +35,6 @@ static void appl_redraw(WINDOW* win,short wbuff[8])
   appl_clear_screen();
   screen_redraw();
   wind_update(END_UPDATE);
-
 }
 
 /**
@@ -90,6 +89,7 @@ void applinit(void)
   window_y=yw;
 
   EvntAttach(win,WM_REDRAW,appl_redraw);
+  
   EvntAttach(NULL, AP_TERM, appl_term);
 
   ObjcAttachMenuFunc(NULL, MENU_ABOUT, appl_about, NULL);
@@ -99,15 +99,24 @@ void applinit(void)
 }
 
 /**
+ * close app about menu
+ */
+static void appl_about_close(WINDOW *win, int index, int mode, void *data)
+{
+  ObjcChange(mode, win, index, 0, TRUE);
+  ApplWrite(_AESapid, WM_DESTROY, win->handle, 0,0,0,0);
+}
+
+/**
  * show app about menu
  */
 static void appl_about(WINDOW *null, int index, int title, void *data)
 {
   OBJECT *aboutbox = appl_get_tree(FORM_ABOUT);
-  WINDOW *winabout = FormCreate(aboutbox, WAT_FORM, NULL, "About PLATOTERM", NULL, TRUE, FALSE);
-
-  WindSet(winabout, WF_BEVENT, BEVENT_MODAL, 0, 0, 0);
-  MenuDisable();
+  FormWindBegin(aboutbox, "About PLATOTerm ST");
+  FormWindDo(MU_MESAG);
+  FormWindEnd();
+  /* ObjcChange(OC_FORM,win,index,0,TRUE); */
 }
 
 /**
