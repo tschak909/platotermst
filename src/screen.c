@@ -16,8 +16,6 @@ unsigned char CharHigh=16;
 padPt TTYLoc;
 DrawElement* screen_queue=NULL;
 
-unsigned char char_buff[280];
-
 extern padBool FastText; /* protocol.c */
 extern unsigned short scalex[];
 extern unsigned short scaley[];
@@ -137,12 +135,10 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue)
   if (CurMode==ModeErase || CurMode==ModeInverse)
     {
       vsf_color(app.aeshdl,0); // white
-      vswr_mode(app.aeshdl,0); // White
     }
   else
     {
       vsf_color(app.aeshdl,1); // black
-      vswr_mode(app.aeshdl,1); // replace
     }
   
   v_bar(app.aeshdl,pxyarray);
@@ -167,12 +163,10 @@ void screen_dot_draw(padPt* Coord, bool queue)
   if (CurMode==ModeErase || CurMode==ModeInverse)
     {
       vsf_color(app.aeshdl,0); // white
-      vswr_mode(app.aeshdl,0); // White
     }
   else
     {
       vsf_color(app.aeshdl,1); // black
-      vswr_mode(app.aeshdl,1); // replace
     }
 
   
@@ -197,12 +191,10 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
    if (CurMode==ModeErase || CurMode==ModeInverse)
     {
       vsl_color(app.aeshdl,0); // white
-      vswr_mode(app.aeshdl,0); // White
     }
   else
     {
       vsl_color(app.aeshdl,1); // black
-      vswr_mode(app.aeshdl,1); // replace
     }
 
    
@@ -276,7 +268,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   else
     mainColor=1;
 
-  // bm_setforeground(mainColor);
+  vsf_color(app.aeshdl,mainColor); // white
 
   x=screen_x((Coord->x&0x1FF));
   y=screen_y((Coord->y)+14&0x1FF);
@@ -376,7 +368,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   	    {
   	      if (b<0) /* check sign bit. */
 		{
-		  // bm_setforeground(mainColor);
+		  vsf_color(app.aeshdl,mainColor); // white
 		  if (ModeBold)
 		    {
 		      pxyarray[0]=*px+1;
@@ -406,7 +398,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
 		{
 		  if (CurMode==ModeInverse || CurMode==ModeRewrite)
 		    {
-		      // bm_setforeground(altColor);
+		      vsf_color(app.aeshdl,altColor); // white
 		      if (ModeBold)
 			{
 			  pxyarray[0]=*px+1;
@@ -460,6 +452,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
  */
 void screen_tty_char(padByte theChar)
 {
+  short pxyarray[4];
   if ((theChar >= 0x20) && (theChar < 0x7F)) {
     screen_char_draw(&TTYLoc, &theChar, 1, true);
     TTYLoc.x += CharWide;
@@ -471,7 +464,14 @@ void screen_tty_char(padByte theChar)
   else if ((theChar == 0x08) && (TTYLoc.x > 7))	/* backspace */
     {
       TTYLoc.x -= CharWide;
-      // screen_block_draw(&scalex[TTYLoc.x],&scaley[TTYLoc.y],&scalex[TTYLoc.x+CharWide],&scaley[TTYLoc.y+CharHigh]);
+      vsf_color(app.aeshdl,0);
+      vsf_interior(app.aeshdl,1); // Solid interior
+      pxyarray[0]=screen_x(TTYLoc.x);
+      pxyarray[1]=screen_y(TTYLoc.y);
+      pxyarray[2]=screen_x(TTYLoc.x+CharWide);
+      pxyarray[3]=screen_y(TTYLoc.y+CharHigh);
+      v_bar(app.aeshdl,pxyarray);
+      vsf_color(app.aeshdl,1);
     }
   else if (theChar == 0x0A)			/* line feed */
     TTYLoc.y -= CharHigh;
