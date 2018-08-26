@@ -21,7 +21,7 @@ void keyboard_out(unsigned char platoKey);
 /**
  * keyboard_main - Handle the keyboard presses
  */
-void keyboard_main(void);
+void keyboard_main(int scanCode, unsigned char shift);
 
 /**
  * keyboard_clear() - Clear the keyboard buffer

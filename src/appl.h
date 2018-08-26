@@ -4,9 +4,15 @@
 #define MAINMENU 0
 
 #define FORM_ABOUT 1
+#define FORM_QUIT 3
+
 #define MENU_ABOUT 7
+#define MENU_QUIT 16
 
 #define BUTTON_ABOUT_OK 1
+
+#define BUTTON_QUIT_YES 2
+#define BUTTON_QUIT_NO 3
 
 /**
  * Initialize the application context
@@ -52,6 +58,11 @@ short appl_get_fullscreen(void);
  * Initialize the off-screen bitmap for terminal.
  */
 void appl_terminal_bitmap_init(void);
+
+/**
+ * show quit form
+ */
+static void appl_quit_form(WINDOW *win, int index, int mode, void *data);
 
 /**
  * close app about menu

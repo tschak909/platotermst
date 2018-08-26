@@ -49,13 +49,29 @@ OBJECT* appl_get_tree( int index)
 }
 
 /**
+ * Called for keyboard I/O
+ */
+static void appl_kybd(WINDOW *win, short buff[8])
+{
+  keyboard_main(evnt.keybd,evnt.mkstate);
+}
+
+/**
+ * Called every timer cycle to update I/O
+ */
+static void appl_timer(WINDOW *win, short buff[8])
+{
+  io_main();
+}
+
+/**
  * Initialize the application context
  */
 void applinit(void)
 {
   short xw,yw,ww,hw;
   ApplInit();
-
+  io_init();
   if (RsrcLoad("plato.rsc") == 0)
     {
       FormAlert(1, FA_ERROR "[Can not locate PLATO.RSC][Exit]");
@@ -92,14 +108,42 @@ void applinit(void)
   window_x=xw;
   window_y=yw;
 
-  EvntAttach(win,WM_REDRAW,appl_redraw);
+  evnt.timer=0;
   
+  EvntAttach(win,WM_REDRAW,appl_redraw);  
   EvntAttach(NULL, AP_TERM, appl_term);
+  EvntAttach(win,WM_XTIMER,appl_timer);
+  EvntAttach(win,WM_XKEYBD,appl_kybd);
 
   ObjcAttachMenuFunc(NULL, MENU_ABOUT, appl_about, NULL);
+  ObjcAttachMenuFunc(NULL,MENU_QUIT,appl_quit_form,NULL);
   
   appl_init_successful=true;
   
+}
+
+static void __CDECL appl_quit_yes( WINDOW *win, int obj, int mode, void *data) {
+	ObjcChange( OC_FORM, win, obj, 0, FALSE);
+	ApplWrite( _AESapid, WM_CLOSED, win->handle, 0, 0, 0, 0);
+	ApplWrite( _AESapid, AP_TERM, 0, 0, 0, 0, 0);
+}
+
+static void __CDECL appl_quit_no( WINDOW *win, int obj, int mode, void *data) {
+	ObjcChange( OC_FORM, win, obj, 0, FALSE);
+	ApplWrite( _AESapid, WM_CLOSED, win->handle, 0, 0, 0, 0);
+}
+
+/**
+ * show quit form
+ */
+static void appl_quit_form(WINDOW *win, int index, int mode, void *data)
+{
+  OBJECT *quitform=appl_get_tree(FORM_QUIT);
+  win=FormWindBegin(quitform, "Quit PLATOTerm");
+  ObjcAttachFormFunc(win,BUTTON_QUIT_YES,appl_quit_yes,NULL);
+  ObjcAttachFormFunc(win,BUTTON_QUIT_NO,appl_quit_no,NULL);
+  FormWindDo(MU_MESAG);
+  FormWindEnd();
 }
 
 /**
