@@ -40,7 +40,7 @@ extern padBool FlowControl;
 extern unsigned char CharWide;
 extern unsigned char CharHigh;
 extern padPt TTYLoc;
-
+extern unsigned char FONT_SIZE_Y;
 extern unsigned char already_started;
 
 /**
@@ -219,7 +219,6 @@ static unsigned char u;
 static unsigned char curr_word;
 
 extern unsigned char fontm23[2048];
-extern unsigned short fontptr[160];
 
 /**
  * terminal_char_load - Store a character into the user definable
@@ -228,7 +227,7 @@ extern unsigned short fontptr[160];
 void terminal_char_load(padWord charnum, charData theChar)
 {
   // clear char data
-  memset(&fontm23[fontptr[charnum]],0,16);
+  memset(&fontm23[charnum*FONT_SIZE_Y],0,16);
 
   // Transpose character data
   for (curr_word=0;curr_word<8;curr_word++)
@@ -237,7 +236,7 @@ void terminal_char_load(padWord charnum, charData theChar)
 	{
 	  if (theChar[curr_word] & 1<<u)
 	    {
-	      fontm23[fontptr[charnum]+u^0x0f&0x0f]|=BTAB[curr_word];
+	      fontm23[(charnum*FONT_SIZE_Y)+u^0x0f&0x0f]|=BTAB[curr_word];
 	    }
 	}
     }

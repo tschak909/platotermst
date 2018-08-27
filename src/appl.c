@@ -6,11 +6,31 @@
 #include "protocol.h"
 #include "screen.h"
 #include "screen_queue.h"
+#include "terminal.h"
 #include <osbind.h>
 
 extern unsigned char splash[];
 extern short splash_size;
 extern DrawElement* screen_queue;
+
+extern unsigned char FONT_SIZE_X;
+extern unsigned char FONT_SIZE_Y;
+extern unsigned char* font;
+extern unsigned char font_fullres[];
+extern unsigned char font_hires[];
+extern unsigned char font_medres[];
+extern unsigned char font_lores[];
+
+extern unsigned short* scalex;
+extern unsigned short* scaley;
+extern unsigned short scalex_hires[];
+extern unsigned short scaley_hires[];
+extern unsigned short scalex_medres[];
+extern unsigned short scaley_medres[];
+extern unsigned short scalex_lores[];
+extern unsigned short scaley_lores[];
+extern unsigned short scalex_fullres[];
+extern unsigned short scaley_fullres[];
 
 int16_t magic_os=FALSE;                // Are we running under MagiC?
 int16_t mint_os=FALSE;                 // Are we running under MINT?
@@ -109,6 +129,9 @@ void applinit(void)
   window_y=yw;
 
   evnt.timer=0;
+
+  terminal_init();
+  terminal_initial_position();
   
   EvntAttach(win,WM_REDRAW,appl_redraw);  
   EvntAttach(NULL, AP_TERM, appl_term);
@@ -230,12 +253,55 @@ void appl_fullscreen(void)
 short appl_get_fullscreen(void)
 {
   // Set full screen if screen is small enough.
-  if (app.work_out[0]==639 && app.work_out[1]==399)
-    appl_atari_hi_res=TRUE;
+  if (app.work_out[0]==639 && app.work_out[1]==479)
+    {
+      // 640x480
+      appl_atari_hi_res=TRUE;
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=12;
+      scalex=scalex_hires;
+      scaley=scaley_hires;
+      font=font_hires;
+    }
+  else if (app.work_out[0]==639 && app.work_out[1]==399)
+    {
+      // 640x400
+      appl_atari_hi_res=TRUE;
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=12;
+      scalex=scalex_hires;
+      scaley=scaley_hires;
+      font=font_hires;
+    }
   else if (app.work_out[0]==639 && app.work_out[1]==199)
-    appl_atari_med_res=TRUE;
+    {
+      // 640x200 
+      appl_atari_med_res=TRUE;
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=6;
+      scalex=scalex_medres;
+      scaley=scaley_medres;
+      font=font_medres;
+    }
   else if (app.work_out[0]==319 && app.work_out[1]==199)
-    appl_atari_low_res=TRUE;
+    {
+      // 320x200
+      appl_atari_low_res=TRUE;
+      FONT_SIZE_X=5;
+      FONT_SIZE_Y=6;
+      scalex=scalex_lores;
+      scaley=scaley_lores;
+      font=font_lores;
+    }
+  else
+    {
+      // Windowed.
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=16;
+      scalex=scalex_fullres;
+      scaley=scaley_fullres;
+      font=font_fullres;
+    }
 
   if (appl_atari_hi_res==TRUE || appl_atari_med_res==TRUE || appl_atari_low_res==TRUE)
     {
@@ -245,14 +311,6 @@ short appl_get_fullscreen(void)
     {
       return FALSE;
     }
-}
-
-/**
- * Initialize the off-screen bitmap for terminal.
- */
-void appl_terminal_bitmap_init(void)
-{
-  
 }
 
 /*

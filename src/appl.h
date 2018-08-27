@@ -55,11 +55,6 @@ void appl_restore_screen(void);
 short appl_get_fullscreen(void);
 
 /**
- * Initialize the off-screen bitmap for terminal.
- */
-void appl_terminal_bitmap_init(void);
-
-/**
  * show quit form
  */
 static void appl_quit_form(WINDOW *win, int index, int mode, void *data);

@@ -15,16 +15,14 @@ unsigned char CharWide=8;
 unsigned char CharHigh=16;
 padPt TTYLoc;
 DrawElement* screen_queue=NULL;
-
+unsigned char FONT_SIZE_X;
+unsigned char FONT_SIZE_Y;
+unsigned short* scalex;
+unsigned short* scaley;
+unsigned char* font[];
 extern padBool FastText; /* protocol.c */
-extern unsigned short scalex[];
-extern unsigned short scaley[];
 
-extern unsigned char font[];
 extern unsigned char fontm23[];
-extern unsigned short fontptr[];
-extern unsigned char FONT_SIZE_X;
-extern unsigned char FONT_SIZE_Y;
 extern unsigned short full_screen;
 extern unsigned short window_x;
 extern unsigned short window_y;
@@ -73,7 +71,6 @@ short screen_y(short y)
 void screen_init(void)
 {
   screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
-  
 }
 
 /**
@@ -237,11 +234,11 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   switch(CurMem)
     {
     case M0:
-      curfont=font;
+      curfont=*font;
       offset=-32;
       break;
     case M1:
-      curfont=font;
+      curfont=*font;
       offset=64;
       break;
     case M2:
@@ -285,7 +282,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
       a=*ch;
       ++ch;
       a+=offset;
-      p=&curfont[fontptr[a]];
+      p=&curfont[(a*FONT_SIZE_Y)];
       
       for (j=0;j<FONT_SIZE_Y;++j)
   	{
@@ -348,7 +345,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
       a=*ch;
       ++ch;
       a+=offset;
-      p=&curfont[fontptr[a]];
+      p=&curfont[(a*FONT_SIZE_Y)];
       for (j=0;j<FONT_SIZE_Y;++j)
   	{
   	  b=*p;
@@ -422,6 +419,10 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
 		      pxyarray[2]=*px;
 		      pxyarray[3]=*py;
 		      v_pline(app.aeshdl,2,pxyarray);		      
+		    }
+		  else
+		    {
+		      vsf_color(app.aeshdl,mainColor);
 		    }
 		}
 

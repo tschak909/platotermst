@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-unsigned short scalex[]={
+unsigned short scalex_fullres[]={
 0,1,2,3,4,5,6,7,
 8,9,10,11,12,13,14,15,
 16,17,18,19,20,21,22,23,
@@ -76,7 +76,7 @@ unsigned short scalex[]={
 504,505,506,507,508,509,510,511,
 };
 
-unsigned short scaley[]={
+unsigned short scaley_fullres[]={
 511,510,509,508,507,506,505,504,
 503,502,501,500,499,498,497,496,
 495,494,493,492,491,490,489,488,

@@ -9,7 +9,7 @@
 void io_init(void)
 {
   // Right now, bare and naive.
-  Rsconf(7,0,-1,-1,-1,-1);
+  Rsconf(1,0,-1,-1,-1,-1);
 }
 
 /**
