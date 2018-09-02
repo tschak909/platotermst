@@ -82,6 +82,8 @@ void terminal_mem_load(padWord addr, padWord value);
  * character set.
  */
 void terminal_char_load(padWord charnum, charData theChar);
+void terminal_char_load_hires(padWord charNum, charData theChar);
+void terminal_char_load_fullres(padWord charNum, charData theChar);
 
 /**
  * terminal_mode_5, 6, and 7 are basically stubbed.

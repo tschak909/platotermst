@@ -11,9 +11,11 @@
 #pragma warn(unused-param, off)
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include "terminal.h"
 #include "screen.h"
+#include "appl.h"
 
 /**
  * ASCII Features to return in Features
@@ -42,6 +44,13 @@ extern unsigned char CharHigh;
 extern padPt TTYLoc;
 extern unsigned char FONT_SIZE_Y;
 extern unsigned char already_started;
+
+/**
+ * appl.c externals
+ */
+extern int16_t appl_atari_hi_res;
+extern int16_t appl_atari_med_res;      // Are we in Atari Med Res (640x200?)
+extern int16_t appl_atari_low_res;      // Are we in Atari Low Res (640x200?)
 
 /**
  * terminal_init()
@@ -214,6 +223,10 @@ void terminal_ext_out(padByte value)
 {
 }
 
+// Temporary PLATO character data, 8x16 matrix
+static unsigned char char_data[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+				  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+
 static unsigned char BTAB[]={0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01}; // flip one bit on (OR)
 static unsigned char u;
 static unsigned char curr_word;
@@ -224,7 +237,47 @@ extern unsigned char fontm23[2048];
  * terminal_char_load - Store a character into the user definable
  * character set.
  */
-void terminal_char_load(padWord charnum, charData theChar)
+
+void terminal_char_load(padWord charNum, charData theChar)
+{
+  if (appl_atari_hi_res==TRUE)
+    terminal_char_load_hires(charNum,theChar);
+  else
+    terminal_char_load_fullres(charNum,theChar);
+}
+
+void terminal_char_load_hires(padWord charNum, charData theChar)
+{
+  memset(char_data,0,sizeof(char_data));
+  
+  // load and transpose character data into 8x16 array  
+  for (curr_word=0;curr_word<8;curr_word++)
+    {
+      for (u=16; u-->0; )
+	{
+	  if (theChar[curr_word] & 1<<u)
+	    {
+	      char_data[u^0x0F&0x0F]|=BTAB[curr_word];
+	    }
+	}
+    }
+
+  // OR pixel rows together
+  fontm23[(charNum*12)+0]=char_data[0];
+  fontm23[(charNum*12)+1]=char_data[1];
+  fontm23[(charNum*12)+2]=char_data[2]|char_data[3];
+  fontm23[(charNum*12)+3]=char_data[4];
+  fontm23[(charNum*12)+4]=char_data[5];
+  fontm23[(charNum*12)+5]=char_data[6]|char_data[7];
+  fontm23[(charNum*12)+6]=char_data[8];
+  fontm23[(charNum*12)+7]=char_data[9];
+  fontm23[(charNum*12)+8]=char_data[10]|char_data[11];
+  fontm23[(charNum*12)+9]=char_data[12];
+  fontm23[(charNum*12)+10]=char_data[13];
+  fontm23[(charNum*12)+11]=char_data[14]|char_data[15];
+}
+
+void terminal_char_load_fullres(padWord charnum, charData theChar)
 {
   // clear char data
   memset(&fontm23[charnum*FONT_SIZE_Y],0,16);
