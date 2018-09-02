@@ -267,6 +267,8 @@ void terminal_char_load(padWord charNum, charData theChar)
     terminal_char_load_hires(charNum,theChar);
   else if (appl_atari_low_res==TRUE)
     terminal_char_load_lores(charNum,theChar);
+  else if (appl_atari_med_res==TRUE)
+    terminal_char_load_medres(charNum,theChar);
   else
     terminal_char_load_fullres(charNum,theChar);
 }
@@ -321,6 +323,32 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
 	    }
 	}
     }
+}
+
+void terminal_char_load_medres(padWord charNum, charData theChar)
+{
+  memset(char_data,0,sizeof(char_data));
+  
+  // load and transpose character data into 8x16 array  
+  for (curr_word=0;curr_word<8;curr_word++)
+    {
+      for (u=16; u-->0; )
+	{
+	  if (theChar[curr_word] & 1<<u)
+	    {
+	      char_data[u^0x0F&0x0F]|=BTAB[curr_word];
+	    }
+	}
+    }
+
+  // OR pixel rows together, may not work for this one.
+  fontm23[(charNum*6)+0]=char_data[0]|char_data[1]|char_data[2];
+  fontm23[(charNum*6)+1]=char_data[3]|char_data[4];
+  fontm23[(charNum*6)+2]=char_data[5]|char_data[6]|char_data[7];
+  fontm23[(charNum*6)+3]=char_data[8]|char_data[9];
+  fontm23[(charNum*6)+4]=char_data[10]|char_data[11]|char_data[12];
+  fontm23[(charNum*6)+5]=char_data[13]|char_data[14]|char_data[15];
+  
 }
 
 void terminal_char_load_hires(padWord charNum, charData theChar)
