@@ -2,6 +2,8 @@
  * PLATOTerm ST - Drawing Queue
  */
 
+#include "protocol.h"
+
 #ifndef SCREEN_QUEUE_H
 #define SCREEN_QUEUE_H
 
@@ -19,6 +21,8 @@ typedef struct draw_element {
   short y2;                  // Coordinate Y2
   unsigned char* ch;         // Character pointer to buffer for mode 2
   unsigned char chlen;       // length of character buffer for mode 2
+  DispMode CurMode;          // Current drawing mode
+  CharMem CurMem;            // Current text memory.
   struct draw_element* next; // Next element.
 } DrawElement;
 

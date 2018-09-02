@@ -505,6 +505,9 @@ void screen_done(void)
 void screen_next_redraw(DrawElement* element)
 {
   padPt coord1, coord2;
+
+  CurMode=element->CurMode;
+  CurMem=element->CurMem;
   
   switch(element->mode)
     {

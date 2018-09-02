@@ -27,6 +27,8 @@ DrawElement* screen_queue_create(short mode,
   new_element->y2=y2;
   new_element->ch=ch;
   new_element->chlen=chlen;
+  new_element->CurMode=CurMode;
+  new_element->CurMem=CurMem;
   new_element->next=next;
   
   return new_element;
@@ -99,7 +101,6 @@ int screen_queue_count(DrawElement* head)
     {
       count++;
       cursor=cursor->next;
-      Bconout(2,0x07);
     }
 
   return count;
