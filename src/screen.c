@@ -265,7 +265,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   else
     mainColor=1;
 
-  vsf_color(app.aeshdl,mainColor); // white
+  vsf_color(app.aeshdl,mainColor);
 
   x=screen_x((Coord->x&0x1FF));
   y=screen_y((Coord->y)+14&0x1FF);
@@ -350,89 +350,89 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   	{
   	  b=*p;
 
-	  if (Rotate)
-	    {
-	      px=&y;
-	      py=&x;
-	    }
-	  else
-	    {
-	      px=&x;
-	      py=&y;
-	    }
+  	  if (Rotate)
+  	    {
+  	      px=&y;
+  	      py=&x;
+  	    }
+  	  else
+  	    {
+  	      px=&x;
+  	      py=&y;
+  	    }
 
   	  for (k=0;k<FONT_SIZE_X;++k)
   	    {
   	      if (b<0) /* check sign bit. */
-		{
-		  vsf_color(app.aeshdl,mainColor); // white
-		  if (ModeBold)
-		    {
-		      pxyarray[0]=*px+1;
-		      pxyarray[1]=*py;
-		      pxyarray[2]=*px+1;
-		      pxyarray[3]=*py;
-		      v_pline(app.aeshdl,2,pxyarray);
-		      pxyarray[0]=*px;
-		      pxyarray[1]=*py+1;
-		      pxyarray[2]=*px;
-		      pxyarray[3]=*py+1;
-		      v_pline(app.aeshdl,2,pxyarray);
-		      pxyarray[0]=*px+1;
-		      pxyarray[1]=*py+1;
-		      pxyarray[2]=*px+1;
-		      pxyarray[3]=*py+1;
-		      v_pline(app.aeshdl,2,pxyarray);		      
-		    }
-		  pxyarray[0]=*px;
-		  pxyarray[1]=*py;
-		  pxyarray[2]=*px;
-		  pxyarray[3]=*py;
-		  v_pline(app.aeshdl,2,pxyarray);
+  		{
+  		  vsl_color(app.aeshdl,mainColor); // white
+  		  if (ModeBold)
+  		    {
+  		      pxyarray[0]=*px+1;
+  		      pxyarray[1]=*py;
+  		      pxyarray[2]=*px+1;
+  		      pxyarray[3]=*py;
+  		      v_pline(app.aeshdl,2,pxyarray);
+  		      pxyarray[0]=*px;
+  		      pxyarray[1]=*py+1;
+  		      pxyarray[2]=*px;
+  		      pxyarray[3]=*py+1;
+  		      v_pline(app.aeshdl,2,pxyarray);
+  		      pxyarray[0]=*px+1;
+  		      pxyarray[1]=*py+1;
+  		      pxyarray[2]=*px+1;
+  		      pxyarray[3]=*py+1;
+  		      v_pline(app.aeshdl,2,pxyarray);
+  		    }
+  		  pxyarray[0]=*px;
+  		  pxyarray[1]=*py;
+  		  pxyarray[2]=*px;
+  		  pxyarray[3]=*py;
+  		  v_pline(app.aeshdl,2,pxyarray);
 
-		}
-	      else
-		{
-		  if (CurMode==ModeInverse || CurMode==ModeRewrite)
-		    {
-		      vsf_color(app.aeshdl,altColor); // white
-		      if (ModeBold)
-			{
-			  pxyarray[0]=*px+1;
-			  pxyarray[1]=*py;
-			  pxyarray[2]=*px+1;
-			  pxyarray[3]=*py;
-			  v_pline(app.aeshdl,2,pxyarray);
-			  pxyarray[0]=*px;
-			  pxyarray[1]=*py+1;
-			  pxyarray[2]=*px;
-			  pxyarray[3]=*py+1;
-			  v_pline(app.aeshdl,2,pxyarray);
-			  pxyarray[0]=*px+1;
-			  pxyarray[1]=*py+1;
-			  pxyarray[2]=*px+1;
-			  pxyarray[3]=*py+1;
-			  v_pline(app.aeshdl,2,pxyarray);		      
-			}
-		      pxyarray[0]=*px;
-		      pxyarray[1]=*py;
-		      pxyarray[2]=*px;
-		      pxyarray[3]=*py;
-		      v_pline(app.aeshdl,2,pxyarray);		      
-		    }
-		  else
-		    {
-		      vsf_color(app.aeshdl,mainColor);
-		    }
-		}
+  		}
+  	      else
+  		{
+  		  if (CurMode==ModeInverse || CurMode==ModeRewrite)
+  		    {
+  		      vsl_color(app.aeshdl,altColor); // white
+  		      if (ModeBold)
+  			{
+  			  pxyarray[0]=*px+1;
+  			  pxyarray[1]=*py;
+  			  pxyarray[2]=*px+1;
+  			  pxyarray[3]=*py;
+  			  v_pline(app.aeshdl,2,pxyarray);
+  			  pxyarray[0]=*px;
+  			  pxyarray[1]=*py+1;
+  			  pxyarray[2]=*px;
+  			  pxyarray[3]=*py+1;
+  			  v_pline(app.aeshdl,2,pxyarray);
+  			  pxyarray[0]=*px+1;
+  			  pxyarray[1]=*py+1;
+  			  pxyarray[2]=*px+1;
+  			  pxyarray[3]=*py+1;
+  			  v_pline(app.aeshdl,2,pxyarray);
+  			}
+  		      pxyarray[0]=*px;
+  		      pxyarray[1]=*py;
+  		      pxyarray[2]=*px;
+  		      pxyarray[3]=*py;
+  		      v_pline(app.aeshdl,2,pxyarray);
+  		    }
+  		  else
+  		    {
+  		      vsl_color(app.aeshdl,mainColor);
+  		    }
+  		}
 
-	      x += deltaX;
+  	      x += deltaX;
   	      b<<=1;
   	    }
 
-	  y+=deltaY;
-	  x-=width;
-	  ++p;
+  	  y+=deltaY;
+  	  x-=width;
+  	  ++p;
   	}
 
       Coord->x+=width;
