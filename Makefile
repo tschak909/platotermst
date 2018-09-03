@@ -12,7 +12,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 CFLAGS=-m68000 -O2
-LDFLAGS=-lwindom -lgem -lldg
+LDFLAGS=-lwindom -lgem -lldg -lm
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))

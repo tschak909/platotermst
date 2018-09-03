@@ -31,6 +31,8 @@ extern unsigned short scalex_lores[];
 extern unsigned short scaley_lores[];
 extern unsigned short scalex_fullres[];
 extern unsigned short scaley_fullres[];
+extern unsigned short background_color[3];
+extern unsigned short foreground_color[3];
 
 int16_t magic_os=FALSE;                // Are we running under MagiC?
 int16_t mint_os=FALSE;                 // Are we running under MINT?
@@ -38,6 +40,7 @@ int16_t full_screen=FALSE;             // Are we running full screen?
 int16_t appl_atari_hi_res=FALSE;       // Are we in Atari Hi Res (640x400?)
 int16_t appl_atari_med_res=FALSE;      // Are we in Atari Med Res (640x200?)
 int16_t appl_atari_low_res=FALSE;      // Are we in Atari Low Res (640x200?)
+int16_t appl_is_mono=FALSE;            // Are we in mono? 
 WINDOW* win;
 int16_t window_x, window_y;            // Window coordinates
 int16_t appl_init_successful=FALSE;    // Application successfully initialized.
@@ -128,6 +131,16 @@ void applinit(void)
   window_x=xw;
   window_y=yw;
 
+  if (appl_is_mono)
+    {
+      background_color[0]=1000;
+      background_color[1]=1000;
+      background_color[2]=1000;
+      foreground_color[0]=0;
+      foreground_color[1]=0;
+      foreground_color[2]=0;
+    }
+  
   evnt.timer=0;
 
   terminal_init();
@@ -272,6 +285,7 @@ short appl_get_fullscreen(void)
       scalex=scalex_hires;
       scaley=scaley_hires;
       font=font_hires;
+      appl_is_mono=TRUE;
     }
   else if (app.work_out[0]==639 && app.work_out[1]==199)
     {
@@ -301,6 +315,8 @@ short appl_get_fullscreen(void)
       scalex=scalex_fullres;
       scaley=scaley_fullres;
       font=font_fullres;
+      if (app.color<3) // mono display
+	appl_is_mono=TRUE;
     }
 
   if (appl_atari_hi_res==TRUE || appl_atari_med_res==TRUE || appl_atari_low_res==TRUE)

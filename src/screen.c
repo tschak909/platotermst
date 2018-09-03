@@ -10,6 +10,7 @@
 #include <string.h>
 #include <osbind.h>
 #include <bits/string2.h>
+#include <math.h>
 
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
@@ -20,12 +21,19 @@ unsigned char FONT_SIZE_Y;
 unsigned short* scalex;
 unsigned short* scaley;
 unsigned char* font[];
+short background_color[3]={0,0,0};
+short foreground_color[3]={1000,1000,1000};
+short highestColorIndex=0;
+
 extern padBool FastText; /* protocol.c */
 
 extern unsigned char fontm23[];
 extern unsigned short full_screen;
 extern unsigned short window_x;
 extern unsigned short window_y;
+extern short appl_is_mono;
+
+#define COLOR_SCALE 3.91 
 
 /**
  * screen_strndup(ch, count) - duplicate character data.
@@ -111,6 +119,9 @@ void screen_clear(void)
   appl_clear_screen();
   screen_queue_dispose(screen_queue);
   screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
+  highestColorIndex=1;
+  vs_color(app.aeshdl,0,background_color);
+  vs_color(app.aeshdl,1,foreground_color);
 }
 
 /**
@@ -185,14 +196,14 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
   pxyarray[2]=screen_x(Coord2->x);
   pxyarray[3]=screen_y(Coord2->y);
 
-   if (CurMode==ModeErase || CurMode==ModeInverse)
-    {
-      vsl_color(app.aeshdl,0); // white
-    }
-  else
-    {
-      vsl_color(app.aeshdl,1); // black
-    }
+  /*  if (CurMode==ModeErase || CurMode==ModeInverse) */
+  /*   { */
+  /*     vsl_color(app.aeshdl,0); // white */
+  /*   } */
+  /* else */
+  /*   { */
+  /*     vsl_color(app.aeshdl,1); // black */
+  /*   } */
 
    
    v_pline(app.aeshdl,2,pxyarray);
@@ -551,3 +562,111 @@ void screen_redraw(void)
     }
 }
 
+/**
+ * Find color index for existing color or return -1
+ * if not currently available.
+ */
+short screen_find_color_index(short color[3])
+{
+  short i=0;
+  short currColor[3];
+  for (i=0;i<=app.color;i++)
+    {
+      vq_color(app.aeshdl,i,0,currColor);
+      if ((currColor[0]==color[0]) &&
+	  (currColor[1]==color[1]) &&
+	  (currColor[2]==color[2]))
+	{
+	  return i;
+	}
+    }
+  return -1;
+}
+
+/**
+ * Set foreground color
+ */
+void screen_foreground(padRGB* theColor)
+{
+  short ci;
+  if (appl_is_mono==TRUE)
+    {
+      if (theColor->red==0 && theColor->green==0 && theColor->blue==0)
+	{
+	  vsf_color(app.aeshdl,0); // White
+	  vsl_color(app.aeshdl,0); 
+	}
+      else
+	{
+	  vsf_color(app.aeshdl,1); // Black
+	  vsl_color(app.aeshdl,1);
+	}
+    }
+  else
+    {
+      foreground_color[0]=floor(theColor->red*COLOR_SCALE);
+      foreground_color[1]=floor(theColor->green*COLOR_SCALE);
+      foreground_color[2]=floor(theColor->blue*COLOR_SCALE);
+      ci=screen_find_color_index(foreground_color);
+      if (ci == -1)
+	{
+	  vs_color(app.aeshdl,highestColorIndex,foreground_color);
+	  vsl_color(app.aeshdl,highestColorIndex);
+	  highestColorIndex++;
+	}
+      else
+	{
+	  vsl_color(app.aeshdl,ci);
+	}
+    }
+}
+
+/**
+ * Set background color
+ */
+void screen_background(padRGB* theColor)
+{
+  short ci;
+  if (appl_is_mono==TRUE)
+    {
+      if (theColor->red==0 && theColor->green==0 && theColor->blue==0)
+	{
+	  vsf_color(app.aeshdl,0); // White
+	  vsl_color(app.aeshdl,0); 
+	}
+      else
+	{
+	  vsf_color(app.aeshdl,1); // Black
+	  vsl_color(app.aeshdl,1);
+	}
+    }
+  else
+    {
+      background_color[0]=floor(theColor->red*COLOR_SCALE);
+      background_color[1]=floor(theColor->green*COLOR_SCALE);
+      background_color[2]=floor(theColor->blue*COLOR_SCALE);
+      ci=screen_find_color_index(background_color);
+      if (ci == -1)
+	{
+	  vs_color(app.aeshdl,highestColorIndex,foreground_color);
+	  vsf_color(app.aeshdl,highestColorIndex);
+	  highestColorIndex++;
+	}
+      else
+	{
+	  vsf_color(app.aeshdl,ci);
+	}
+    }
+}
+
+/**
+ * paint
+ */
+void screen_paint(padPt* Coord)
+{
+  short color_index=screen_find_color_index(foreground_color);
+  if (appl_is_mono==1)
+    v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
+  else
+    v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
+}

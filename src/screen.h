@@ -125,4 +125,25 @@ void screen_next_redraw(DrawElement* element);
  */
 void screen_redraw(void);
 
+/**
+ * Find color index for existing color or return -1
+ * if not currently available.
+ */
+short screen_find_color_index(short color[3]);
+
+/**
+ * Set foreground color
+ */
+void screen_foreground(padRGB* theColor);
+
+/**
+ * Set background color
+ */
+void screen_background(padRGB* theColor);
+
+/**
+ * Paint
+ */
+void screen_paint(padPt* Coord);
+
 #endif /* SCREEN_H */
