@@ -18,6 +18,7 @@ extern unsigned char FONT_SIZE_Y;
 extern unsigned char* font;
 extern unsigned char font_fullres[];
 extern unsigned char font_hires[];
+extern unsigned char font_ttmedres[];
 extern unsigned char font_medres[];
 extern unsigned char font_lores[];
 
@@ -27,6 +28,8 @@ extern unsigned short scalex_hires[];
 extern unsigned short scaley_hires[];
 extern unsigned short scalex_medres[];
 extern unsigned short scaley_medres[];
+extern unsigned short scalex_ttmedres[];
+extern unsigned short scaley_ttmedres[];
 extern unsigned short scalex_lores[];
 extern unsigned short scaley_lores[];
 extern unsigned short scalex_fullres[];
@@ -93,6 +96,7 @@ static void appl_timer(WINDOW *win, short buff[8])
 void applinit(void)
 {
   short xw,yw,ww,hw;
+  short cx,cy,cw,ch;
   ApplInit();
   io_init();
   if (RsrcLoad("plato.rsc") == 0)
@@ -119,11 +123,13 @@ void applinit(void)
     win=WindCreate(0,app.x,app.y,app.w,app.h);
   else
     win = WindCreate( NAME|MOVER|CLOSER, app.x, app.y, app.w, app.h);
+
+  wind_calc(WC_BORDER,NAME|MOVER|CLOSER,app.x,app.y,512,512,&cx,&cy,&cw,&ch);
   
   if (full_screen==TRUE)
     WindOpen( win, app.x, app.y, app.x+app.w, app.y+app.h);
   else
-    WindOpen( win, app.x, app.y, 512, 512);
+    WindOpen( win, cx, cy, cw, ch);
 
   WindSetStr( win, WF_NAME, "PLATOTerm ST");
   
@@ -268,13 +274,13 @@ short appl_get_fullscreen(void)
   // Set full screen if screen is small enough.
   if (app.work_out[0]==639 && app.work_out[1]==479)
     {
-      // 640x480
+      // 640x480 TT med res.
       appl_atari_hi_res=TRUE;
       FONT_SIZE_X=8;
-      FONT_SIZE_Y=12;
-      scalex=scalex_hires;
-      scaley=scaley_hires;
-      font=font_hires;
+      FONT_SIZE_Y=15;
+      scalex=scalex_ttmedres;
+      scaley=scaley_ttmedres;
+      font=font_ttmedres;
     }
   else if (app.work_out[0]==639 && app.work_out[1]==399)
     {
