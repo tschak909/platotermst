@@ -73,6 +73,24 @@ void palette_queue_dispose(PaletteElement* head)
     }
 }
 
+/**
+ * Find color index for existing color or return -1
+ * if not currently available.
+ */
+short palette_queue_find_color_index(PaletteElement* head, padRGB* theColor)
+{
+  PaletteElement* cursor=head;
+  while (cursor->next != NULL)
+    {
+      if (cursor->red==theColor->red &&
+	  cursor->green==theColor->green &&
+	  cursor->blue==theColor->blue)
+	return cursor->palette_index;
+      cursor=cursor->next;
+    }
+  return -1; // Not found.
+}
+
 int palette_queue_count(PaletteElement* head)
 {
   PaletteElement* cursor=head;

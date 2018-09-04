@@ -9,7 +9,7 @@
 
 // Singly linked list of paletteing elements.
 typedef struct palette_element {
-  unsigned short palette_index;          // The palette index #
+  short palette_index;          // The palette index #
   unsigned char red;                     // The Red value
   unsigned char green;                   // The Green value
   unsigned char blue;                    // The Blue value
@@ -21,5 +21,6 @@ PaletteElement* palette_queue_prepend(PaletteElement* head, unsigned short palet
 PaletteElement* palette_queue_append(PaletteElement* head, unsigned short palette_index, unsigned char red, unsigned char green, unsigned char blue);
 void palette_queue_dispose(PaletteElement* head);
 int palette_queue_count(PaletteElement* head);
+short palette_queue_find_color_index(PaletteElement* head, padRGB* theColor);
 
 #endif /* PALETTE_QUEUE_H */

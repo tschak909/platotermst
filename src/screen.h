@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include "protocol.h"
 #include "screen_queue.h"
+#include "palette_queue.h"
 
 /**
  * screen_init() - Set up the screen
@@ -124,12 +125,6 @@ void screen_next_redraw(DrawElement* element);
  * screen_redraw()
  */
 void screen_redraw(void);
-
-/**
- * Find color index for existing color or return -1
- * if not currently available.
- */
-short screen_find_color_index(short red, short green, short blue);
 
 /**
  * Set foreground color
