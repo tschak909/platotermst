@@ -127,8 +127,10 @@ void screen_clear(void)
   screen_queue_dispose(screen_queue);
   screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
   palette_queue_dispose(palette_queue);
-  palette_queue=palette_queue_create(0,background_rgb.red,background_rgb.green,background_rgb.blue,NULL);
-  palette_queue_append(palette_queue,1,foreground_rgb.red,foreground_rgb.green,foreground_rgb.blue);
+
+      palette_queue=palette_queue_create(0,background_rgb.red,background_rgb.green,background_rgb.blue,NULL);
+      palette_queue_append(palette_queue,1,foreground_rgb.red,foreground_rgb.green,foreground_rgb.blue);
+
   highestColorIndex=2;
   vs_color(app.aeshdl,0,background_color);
   vs_color(app.aeshdl,1,foreground_color);
