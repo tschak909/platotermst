@@ -668,5 +668,5 @@ void screen_paint(padPt* Coord)
   if (appl_is_mono==1)
     v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
   else
-    v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
+    v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),palette_queue_find_color_index(palette_queue,&foreground_rgb));
 }
