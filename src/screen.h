@@ -129,7 +129,7 @@ void screen_redraw(void);
  * Find color index for existing color or return -1
  * if not currently available.
  */
-short screen_find_color_index(short color[3]);
+short screen_find_color_index(short red, short green, short blue);
 
 /**
  * Set foreground color

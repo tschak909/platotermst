@@ -121,7 +121,7 @@ void screen_clear(void)
   appl_clear_screen();
   screen_queue_dispose(screen_queue);
   screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
-  highestColorIndex=1;
+  highestColorIndex=2;
   vs_color(app.aeshdl,0,background_color);
   vs_color(app.aeshdl,1,foreground_color);
 }
@@ -268,7 +268,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   else
     mainColor=foreground_color_index;
 
-  vsf_color(app.aeshdl,mainColor);
+  vsl_color(app.aeshdl,mainColor);
 
   x=screen_x((Coord->x&0x1FF));
   y=screen_y((Coord->y)+14&0x1FF);
@@ -425,7 +425,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   		    }
   		  else
   		    {
-  		      vsl_color(app.aeshdl,mainColor);
+  		      vsl_color(app.aeshdl,altColor);
   		    }
   		}
 
@@ -558,16 +558,16 @@ void screen_redraw(void)
  * Find color index for existing color or return -1
  * if not currently available.
  */
-short screen_find_color_index(short color[3])
+short screen_find_color_index(short red, short green, short blue)
 {
   short i=0;
   short currColor[3];
   for (i=0;i<=app.color;i++)
     {
       vq_color(app.aeshdl,i,0,currColor);
-      if ((currColor[0]==color[0]) &&
-	  (currColor[1]==color[1]) &&
-	  (currColor[2]==color[2]))
+      if ((currColor[0]==red) &&
+	  (currColor[1]==green) &&
+	  (currColor[2]==blue))
 	{
 	  return i;
 	}
@@ -601,7 +601,7 @@ void screen_foreground(padRGB* theColor)
       foreground_color[0]=floor(theColor->red*COLOR_SCALE);
       foreground_color[1]=floor(theColor->green*COLOR_SCALE);
       foreground_color[2]=floor(theColor->blue*COLOR_SCALE);
-      ci=screen_find_color_index(foreground_color);
+      ci=screen_find_color_index(foreground_color[0],foreground_color[1],foreground_color[2]);
       if (ci == -1)
 	{
 	  vs_color(app.aeshdl,highestColorIndex,foreground_color);
@@ -643,10 +643,10 @@ void screen_background(padRGB* theColor)
       background_color[0]=floor(theColor->red*COLOR_SCALE);
       background_color[1]=floor(theColor->green*COLOR_SCALE);
       background_color[2]=floor(theColor->blue*COLOR_SCALE);
-      ci=screen_find_color_index(background_color);
+      ci=screen_find_color_index(background_color[0],background_color[1],background_color[2]);
       if (ci == -1)
 	{
-	  vs_color(app.aeshdl,highestColorIndex,foreground_color);
+	  vs_color(app.aeshdl,highestColorIndex,background_color);
 	  vsf_color(app.aeshdl,highestColorIndex);
 	  background_color_index=highestColorIndex;
 	  highestColorIndex++;
@@ -664,7 +664,7 @@ void screen_background(padRGB* theColor)
  */
 void screen_paint(padPt* Coord)
 {
-  short color_index=screen_find_color_index(foreground_color);
+  short color_index=screen_find_color_index(foreground_color[0],foreground_color[1],foreground_color[2]);
   if (appl_is_mono==1)
     v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
   else
