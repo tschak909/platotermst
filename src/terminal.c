@@ -51,6 +51,7 @@ extern unsigned char already_started;
 extern int16_t appl_atari_hi_res;
 extern int16_t appl_atari_med_res;      // Are we in Atari Med Res (640x200?)
 extern int16_t appl_atari_low_res;      // Are we in Atari Low Res (640x200?)
+extern int16_t appl_atari_tt_med_res;   // Are we in Atari TT Med Res (640x480?)
 
 /**
  * terminal_init()
@@ -269,6 +270,8 @@ void terminal_char_load(padWord charNum, charData theChar)
     terminal_char_load_lores(charNum,theChar);
   else if (appl_atari_med_res==TRUE)
     terminal_char_load_medres(charNum,theChar);
+  else if (appl_atari_tt_med_res==TRUE)
+    terminal_char_load_ttmedres(charNum,theChar);
   else
     terminal_char_load_fullres(charNum,theChar);
 }
@@ -380,6 +383,40 @@ void terminal_char_load_hires(padWord charNum, charData theChar)
   fontm23[(charNum*12)+9]=char_data[12];
   fontm23[(charNum*12)+10]=char_data[13];
   fontm23[(charNum*12)+11]=char_data[14]|char_data[15];
+}
+
+void terminal_char_load_ttmedres(padWord charNum, charData theChar)
+{
+  memset(char_data,0,sizeof(char_data));
+  
+  // load and transpose character data into 8x16 array  
+  for (curr_word=0;curr_word<8;curr_word++)
+    {
+      for (u=16; u-->0; )
+	{
+	  if (theChar[curr_word] & 1<<u)
+	    {
+	      char_data[u^0x0F&0x0F]|=BTAB[curr_word];
+	    }
+	}
+    }
+
+  // OR pixel rows together
+  fontm23[(charNum*15)+0]=char_data[0];
+  fontm23[(charNum*15)+1]=char_data[1];
+  fontm23[(charNum*15)+2]=char_data[2];
+  fontm23[(charNum*15)+3]=char_data[3];
+  fontm23[(charNum*15)+4]=char_data[4];
+  fontm23[(charNum*15)+5]=char_data[5];
+  fontm23[(charNum*15)+6]=char_data[6];
+  fontm23[(charNum*15)+7]=char_data[7];
+  fontm23[(charNum*15)+8]=char_data[8];
+  fontm23[(charNum*15)+9]=char_data[9];
+  fontm23[(charNum*15)+10]=char_data[10];
+  fontm23[(charNum*15)+11]=char_data[11];
+  fontm23[(charNum*15)+12]=char_data[12];
+  fontm23[(charNum*15)+13]=char_data[13];
+  fontm23[(charNum*15)+14]=char_data[14]|char_data[15];  
 }
 
 void terminal_char_load_fullres(padWord charnum, charData theChar)

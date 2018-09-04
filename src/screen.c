@@ -24,6 +24,8 @@ unsigned char* font[];
 short background_color[3]={0,0,0};
 short foreground_color[3]={1000,1000,1000};
 short highestColorIndex=0;
+short background_color_index=0;
+short foreground_color_index=1;
 
 extern padBool FastText; /* protocol.c */
 
@@ -196,16 +198,6 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
   pxyarray[2]=screen_x(Coord2->x);
   pxyarray[3]=screen_y(Coord2->y);
 
-  /*  if (CurMode==ModeErase || CurMode==ModeInverse) */
-  /*   { */
-  /*     vsl_color(app.aeshdl,0); // white */
-  /*   } */
-  /* else */
-  /*   { */
-  /*     vsl_color(app.aeshdl,1); // black */
-  /*   } */
-
-   
    v_pline(app.aeshdl,2,pxyarray);
    if (queue==true)
      {
@@ -264,17 +256,17 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
 
   if (CurMode==ModeRewrite)
     {
-      altColor=0;
+      altColor=background_color_index;
     }
   else if (CurMode==ModeInverse)
     {
-      altColor=1;
+      altColor=foreground_color_index;
     }
   
   if (CurMode==ModeErase || CurMode==ModeInverse)
-    mainColor=0;
+    mainColor=background_color_index;
   else
-    mainColor=1;
+    mainColor=foreground_color_index;
 
   vsf_color(app.aeshdl,mainColor);
 
@@ -594,12 +586,14 @@ void screen_foreground(padRGB* theColor)
       if (theColor->red==0 && theColor->green==0 && theColor->blue==0)
 	{
 	  vsf_color(app.aeshdl,0); // White
-	  vsl_color(app.aeshdl,0); 
+	  vsl_color(app.aeshdl,0);
+	  foreground_color_index=0;
 	}
       else
 	{
 	  vsf_color(app.aeshdl,1); // Black
 	  vsl_color(app.aeshdl,1);
+	  foreground_color_index=1;
 	}
     }
   else
@@ -612,11 +606,13 @@ void screen_foreground(padRGB* theColor)
 	{
 	  vs_color(app.aeshdl,highestColorIndex,foreground_color);
 	  vsl_color(app.aeshdl,highestColorIndex);
+	  foreground_color_index=highestColorIndex;
 	  highestColorIndex++;
 	}
       else
 	{
 	  vsl_color(app.aeshdl,ci);
+	  foreground_color_index=ci;
 	}
     }
 }
@@ -632,12 +628,14 @@ void screen_background(padRGB* theColor)
       if (theColor->red==0 && theColor->green==0 && theColor->blue==0)
 	{
 	  vsf_color(app.aeshdl,0); // White
-	  vsl_color(app.aeshdl,0); 
+	  vsl_color(app.aeshdl,0);
+	  background_color_index=0;
 	}
       else
 	{
 	  vsf_color(app.aeshdl,1); // Black
 	  vsl_color(app.aeshdl,1);
+	  background_color_index=1;
 	}
     }
   else
@@ -650,11 +648,13 @@ void screen_background(padRGB* theColor)
 	{
 	  vs_color(app.aeshdl,highestColorIndex,foreground_color);
 	  vsf_color(app.aeshdl,highestColorIndex);
+	  background_color_index=highestColorIndex;
 	  highestColorIndex++;
 	}
       else
 	{
 	  vsf_color(app.aeshdl,ci);
+	  background_color_index=ci;
 	}
     }
 }

@@ -42,6 +42,7 @@ int16_t mint_os=FALSE;                 // Are we running under MINT?
 int16_t full_screen=FALSE;             // Are we running full screen? 
 int16_t appl_atari_hi_res=FALSE;       // Are we in Atari Hi Res (640x400?)
 int16_t appl_atari_med_res=FALSE;      // Are we in Atari Med Res (640x200?)
+int16_t appl_atari_tt_med_res=FALSE;   // Are we in Atari TT Med Res (640x480?)
 int16_t appl_atari_low_res=FALSE;      // Are we in Atari Low Res (640x200?)
 int16_t appl_is_mono=FALSE;            // Are we in mono? 
 WINDOW* win;
@@ -139,12 +140,12 @@ void applinit(void)
 
   if (appl_is_mono)
     {
-      background_color[0]=1000;
-      background_color[1]=1000;
-      background_color[2]=1000;
-      foreground_color[0]=0;
-      foreground_color[1]=0;
-      foreground_color[2]=0;
+      background_color[0]=0;
+      background_color[1]=0;
+      background_color[2]=0;
+      foreground_color[0]=1000;
+      foreground_color[1]=1000;
+      foreground_color[2]=1000;
     }
   
   evnt.timer=0;
@@ -275,7 +276,7 @@ short appl_get_fullscreen(void)
   if (app.work_out[0]==639 && app.work_out[1]==479)
     {
       // 640x480 TT med res.
-      appl_atari_hi_res=TRUE;
+      appl_atari_tt_med_res=TRUE;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=15;
       scalex=scalex_ttmedres;
@@ -325,7 +326,7 @@ short appl_get_fullscreen(void)
 	appl_is_mono=TRUE;
     }
 
-  if (appl_atari_hi_res==TRUE || appl_atari_med_res==TRUE || appl_atari_low_res==TRUE)
+  if (appl_atari_hi_res==TRUE || appl_atari_tt_med_res==TRUE || appl_atari_med_res==TRUE || appl_atari_low_res==TRUE)
     {
       return TRUE;
     }
