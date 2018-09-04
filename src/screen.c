@@ -288,7 +288,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   pxyarray[2]=FONT_SIZE_X;
   pxyarray[3]=FONT_SIZE_Y;
   pxyarray[4]=screen_x(Coord->x);
-  pxyarray[5]=screen_y(Coord->y);
+  pxyarray[5]=screen_y(Coord->y)-FONT_SIZE_Y;
   pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X;
   pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y;
   
