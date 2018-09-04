@@ -84,8 +84,6 @@ short screen_y(short y)
 void screen_init(void)
 {
   screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,NULL);
-  palette_queue=palette_queue_create(0,0,0,0,NULL);
-  palette_queue_append(palette_queue,1,255,255,255);
 }
 
 /**
@@ -220,26 +218,18 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
  */
 void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool queue)
 {
-  short offset; /* due to negative offsets */
-  unsigned short x;      /* Current X and Y coordinates */
-  unsigned short y;
-  unsigned short* px;   /* Pointers to X and Y coordinates used for actual plotting */
-  unsigned short* py;
-  unsigned char i; /* current character counter */
-  unsigned char a; /* current character byte */
-  unsigned char j,k; /* loop counters */
-  char b; /* current character row bit signed */
-  unsigned char width=FONT_SIZE_X;
-  unsigned char height=FONT_SIZE_Y;
-  unsigned short deltaX=1;
-  unsigned short deltaY=1;
-  unsigned char mainColor=1;
-  unsigned char altColor=0;
-  unsigned char *p;
-  unsigned char* curfont;
-  short pxyarray[4];
   char* chptr;
-
+  unsigned char a;
+  unsigned short* curfont;
+  unsigned char i;
+  short offset;
+  MFDB srcMFDB, destMFDB;
+  short pxyarray[8];
+  short colors[2]={1,0}; // Output colors
+  short current_mode=1;  // Default to Rewrite
+  
+  destMFDB.fd_addr=0; // We blit to the screen.
+  
   // Create copy of character buffer, if queuing up.
   if (queue==TRUE)
     chptr=screen_strndup(ch,count);
@@ -247,218 +237,77 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   switch(CurMem)
     {
     case M0:
-      curfont=*font;
+      curfont=(unsigned short *)*font;
       offset=-32;
       break;
     case M1:
-      curfont=*font;
+      curfont=(unsigned short *)*font;
       offset=64;
       break;
     case M2:
-      curfont=fontm23;
+      curfont=(unsigned short *)fontm23;
       offset=-32;
       break;
     case M3:
-      curfont=fontm23;
+      curfont=(unsigned short *)fontm23;
       offset=32;      
       break;
     }
 
-  if (CurMode==ModeRewrite)
+  switch(CurMode)
     {
-      altColor=background_color_index;
-    }
-  else if (CurMode==ModeInverse)
-    {
-      altColor=foreground_color_index;
-    }
-  
-  if (CurMode==ModeErase || CurMode==ModeInverse)
-    mainColor=background_color_index;
-  else
-    mainColor=foreground_color_index;
-
-  vsl_color(app.aeshdl,mainColor);
-
-  x=screen_x((Coord->x&0x1FF));
-  y=screen_y((Coord->y)+14&0x1FF);
-  
-  if (FastText==padF)
-    {
-      goto chardraw_with_fries;
-    }
-
-  /* the diet chardraw routine - fast text output. */
-  
-  for (i=0;i<count;++i)
-    {
-      a=*ch;
-      ++ch;
-      a+=offset;
-      p=&curfont[(a*FONT_SIZE_Y)];
-      
-      for (j=0;j<FONT_SIZE_Y;++j)
-  	{
-  	  b=*p;
-	  
-  	  for (k=0;k<FONT_SIZE_X;++k)
-  	    {
-  	      if (b<0) /* check sign bit. */
-		{
-		  pxyarray[0]=x;
-		  pxyarray[1]=y;
-		  pxyarray[2]=x;
-		  pxyarray[3]=y;
-		  v_pline(app.aeshdl,2,pxyarray);
-		}
-
-	      ++x;
-  	      b<<=1;
-  	    }
-
-	  ++y;
-	  x-=width;
-	  ++p;
-  	}
-
-      x+=width;
-      y-=height;
-    }
-
-  if (queue==true)
-    {
-      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
-    }
-
-  return;
-
- chardraw_with_fries:
-  if (Rotate)
-    {
-      deltaX=-abs(deltaX);
-      width=-abs(width);
-      px=&y;
-      py=&x;
-    }
-    else
-    {
-      px=&x;
-      py=&y;
+    case ModeWrite:
+      colors[0]=foreground_color_index;
+      colors[1]=background_color_index;
+      current_mode=2; // Transparent
+      break;
+    case ModeRewrite:
+      colors[0]=foreground_color_index;
+      colors[1]=background_color_index;
+      current_mode=1; // Replace
+      break;
+    case ModeErase:
+      colors[0]=background_color_index;
+      colors[1]=foreground_color_index;
+      current_mode=2; // Transparent
+      break;
+    case ModeInverse:
+      colors[0]=background_color_index;
+      colors[1]=foreground_color_index;
+      current_mode=1; // Replace
+      break;
     }
   
-  if (ModeBold)
-    {
-      deltaX = deltaY = 2;
-      width<<=1;
-      height<<=1;
-    }
+  srcMFDB.fd_w=FONT_SIZE_X;
+  srcMFDB.fd_h=FONT_SIZE_Y;
+  srcMFDB.fd_wdwidth=1;
+  srcMFDB.fd_stand=0;
+  srcMFDB.fd_nplanes=1;
+  
+  pxyarray[0]=pxyarray[1]=0;
+  pxyarray[2]=FONT_SIZE_X;
+  pxyarray[3]=FONT_SIZE_Y;
+  pxyarray[4]=screen_x(Coord->x);
+  pxyarray[5]=screen_y(Coord->y);
+  pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X;
+  pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y;
   
   for (i=0;i<count;++i)
     {
       a=*ch;
       ++ch;
       a+=offset;
-      p=&curfont[(a*FONT_SIZE_Y)];
-      for (j=0;j<FONT_SIZE_Y;++j)
-  	{
-  	  b=*p;
-
-  	  if (Rotate)
-  	    {
-  	      px=&y;
-  	      py=&x;
-  	    }
-  	  else
-  	    {
-  	      px=&x;
-  	      py=&y;
-  	    }
-
-  	  for (k=0;k<FONT_SIZE_X;++k)
-  	    {
-  	      if (b<0) /* check sign bit. */
-  		{
-  		  vsl_color(app.aeshdl,mainColor); // white
-  		  if (ModeBold)
-  		    {
-  		      pxyarray[0]=*px+1;
-  		      pxyarray[1]=*py;
-  		      pxyarray[2]=*px+1;
-  		      pxyarray[3]=*py;
-  		      v_pline(app.aeshdl,2,pxyarray);
-  		      pxyarray[0]=*px;
-  		      pxyarray[1]=*py+1;
-  		      pxyarray[2]=*px;
-  		      pxyarray[3]=*py+1;
-  		      v_pline(app.aeshdl,2,pxyarray);
-  		      pxyarray[0]=*px+1;
-  		      pxyarray[1]=*py+1;
-  		      pxyarray[2]=*px+1;
-  		      pxyarray[3]=*py+1;
-  		      v_pline(app.aeshdl,2,pxyarray);
-  		    }
-  		  pxyarray[0]=*px;
-  		  pxyarray[1]=*py;
-  		  pxyarray[2]=*px;
-  		  pxyarray[3]=*py;
-  		  v_pline(app.aeshdl,2,pxyarray);
-
-  		}
-  	      else
-  		{
-  		  if (CurMode==ModeInverse || CurMode==ModeRewrite)
-  		    {
-  		      vsl_color(app.aeshdl,altColor); // white
-  		      if (ModeBold)
-  			{
-  			  pxyarray[0]=*px+1;
-  			  pxyarray[1]=*py;
-  			  pxyarray[2]=*px+1;
-  			  pxyarray[3]=*py;
-  			  v_pline(app.aeshdl,2,pxyarray);
-  			  pxyarray[0]=*px;
-  			  pxyarray[1]=*py+1;
-  			  pxyarray[2]=*px;
-  			  pxyarray[3]=*py+1;
-  			  v_pline(app.aeshdl,2,pxyarray);
-  			  pxyarray[0]=*px+1;
-  			  pxyarray[1]=*py+1;
-  			  pxyarray[2]=*px+1;
-  			  pxyarray[3]=*py+1;
-  			  v_pline(app.aeshdl,2,pxyarray);
-  			}
-  		      pxyarray[0]=*px;
-  		      pxyarray[1]=*py;
-  		      pxyarray[2]=*px;
-  		      pxyarray[3]=*py;
-  		      v_pline(app.aeshdl,2,pxyarray);
-  		    }
-  		  else
-  		    {
-  		      vsl_color(app.aeshdl,altColor);
-  		    }
-  		}
-
-  	      x += deltaX;
-  	      b<<=1;
-  	    }
-
-  	  y+=deltaY;
-  	  x-=width;
-  	  ++p;
-  	}
-
-      Coord->x+=width;
-      x+=width;
-      y-=height;
+      srcMFDB.fd_addr=&curfont[(a*FONT_SIZE_Y)];
+      vrt_cpyfm(app.aeshdl,1,pxyarray,&srcMFDB,&destMFDB,colors);
+      pxyarray[4]+=FONT_SIZE_X;
+      pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
     }
-
+  
   if (queue==true)
     {
       screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
     }
-
-  return;
+  
 }
 
 /**
