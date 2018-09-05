@@ -431,8 +431,7 @@ void terminal_char_load_fullres(padWord charnum, charData theChar)
 	{
 	  if (theChar[curr_word] & 1<<u)
 	    {
-	      fontm23[(charnum*FONT_SIZE_Y)+u^0x0f&0x0f]|=BTAB[curr_word];
-	      fontm23[(charnum*FONT_SIZE_Y)+u^0x0f&0x0f]<<8;
+	      fontm23[(charnum*FONT_SIZE_Y)+u^0x0f&0x0f]|=BTAB[curr_word]<<8;
 	    }
 	}
     }

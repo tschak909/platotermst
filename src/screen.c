@@ -223,6 +223,29 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
        screen_queue_append(screen_queue,SCREEN_QUEUE_LINE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0);
      }
 }
+/**
+ * screen_char_bold_shift() - enlarge character for bold mode
+ */
+void screen_char_bold_shift(unsigned short* bold_char, unsigned short* ch)
+{
+  unsigned short a,i,j,k=0;
+  const unsigned short ANDTAB[8]={0x0100,0x0200,0x0400,0x0800,0x1000,0x2000,0x4000,0x8000};
+  const unsigned short DBLORTAB[8]={0x0003,0x000C,0x0030,0x00C0,0x0300,0x0C00,0x3000,0xC000};
+  for (i=0;i<FONT_SIZE_Y;++i)
+    {
+      a=*ch++;
+      bold_char[k]=bold_char[k+1]=0;
+      for (j=0;j<8;++j)
+	{
+	  if (a&ANDTAB[j])
+	    {
+	      bold_char[k]|=DBLORTAB[j];
+	      bold_char[k+1]|=DBLORTAB[j];
+	    }
+	}
+      k+=2; // Should be (FONT_SIZE*2)-1 on end.
+    }
+}
 
 /**
  * screen_char_draw(Coord, ch, count) - Output buffer from ch* of length count as PLATO characters
@@ -238,7 +261,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   short pxyarray[8];
   short colors[2]={1,0}; // Output colors
   short current_mode=1;  // Default to Rewrite
-  
+  short bold_char[32];   // Bold character buffer.
   destMFDB.fd_addr=0; // We blit to the screen.
   
   // Create copy of character buffer, if queuing up.
@@ -288,32 +311,60 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
       current_mode=1; // Replace
       break;
     }
-  
-  srcMFDB.fd_w=FONT_SIZE_X-1;
-  srcMFDB.fd_h=FONT_SIZE_Y-1;
+
   srcMFDB.fd_wdwidth=1;
   srcMFDB.fd_stand=0;
   srcMFDB.fd_nplanes=1;
-  
-  pxyarray[0]=pxyarray[1]=0;
-  pxyarray[2]=FONT_SIZE_X-1;
-  pxyarray[3]=FONT_SIZE_Y-1;
-  pxyarray[4]=screen_x(Coord->x);
-  pxyarray[5]=screen_y(Coord->y)-FONT_SIZE_Y;
-  pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X-1;
-  pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y-1;
-  
-  for (i=0;i<count;++i)
+  if (ModeBold==padT)
     {
-      a=*ch;
-      ++ch;
-      a+=offset;
-      srcMFDB.fd_addr=&curfont[(a*FONT_SIZE_Y)];
-      vrt_cpyfm(app.aeshdl,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
-      pxyarray[4]+=FONT_SIZE_X;
-      pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
+      srcMFDB.fd_w=(FONT_SIZE_X*2)-1;
+      srcMFDB.fd_h=(FONT_SIZE_Y*2)-1;
+      pxyarray[0]=pxyarray[1]=0;
+      pxyarray[2]=(FONT_SIZE_X*2)-1;
+      pxyarray[3]=(FONT_SIZE_Y*2)-1;
+      pxyarray[4]=screen_x(Coord->x);
+      pxyarray[5]=screen_y(Coord->y)-(FONT_SIZE_Y*2);
+      pxyarray[6]=screen_x(Coord->x)+(FONT_SIZE_X*2)-1;
+      pxyarray[7]=screen_y(Coord->y)+(FONT_SIZE_Y*2)-1;      
     }
-  
+  else
+    {
+      srcMFDB.fd_w=FONT_SIZE_X-1;
+      srcMFDB.fd_h=FONT_SIZE_Y-1;
+      pxyarray[0]=pxyarray[1]=0;
+      pxyarray[2]=FONT_SIZE_X-1;
+      pxyarray[3]=FONT_SIZE_Y-1;
+      pxyarray[4]=screen_x(Coord->x);
+      pxyarray[5]=screen_y(Coord->y)-FONT_SIZE_Y;
+      pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X-1;
+      pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y-1;
+    }
+
+  if (ModeBold==padT)
+    {
+      for (i=0;i<count;++i)
+	{
+	  a=*ch;
+	  ++ch;
+	  a+=offset;
+	  screen_char_bold_shift(bold_char,&curfont[(a*FONT_SIZE_Y)]);
+	  srcMFDB.fd_addr=&bold_char;
+	  vrt_cpyfm(app.aeshdl,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
+	}
+    }
+  else
+    {
+      for (i=0;i<count;++i)
+	{
+	  a=*ch;
+	  ++ch;
+	  a+=offset;
+	  srcMFDB.fd_addr=&curfont[(a*FONT_SIZE_Y)];
+	  vrt_cpyfm(app.aeshdl,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
+	  pxyarray[4]+=FONT_SIZE_X;
+	  pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
+	}
+    }
   if (queue==true)
     {
       screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count);
