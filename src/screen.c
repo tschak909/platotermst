@@ -204,10 +204,10 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
   switch(CurMode)
     {
     case ModeWrite:
-      vswr_mode(app.aeshdl,1);
+      vsl_color(app.aeshdl,foreground_color_index);
       break;
     case ModeErase:
-      vswr_mode(app.aeshdl,3);
+      vsl_color(app.aeshdl,background_color_index);
       break;
     }
 
