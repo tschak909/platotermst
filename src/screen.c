@@ -114,6 +114,7 @@ void screen_wait(void)
  */
 void screen_beep(void)
 {
+  Bconout(2,0x07);
 }
 
 /**
