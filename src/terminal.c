@@ -255,7 +255,7 @@ static unsigned char pix_cnt;     // total # of pixels
 static unsigned char curr_word;   // current word
 static unsigned char u,v;       // loop counters
 
-extern unsigned char fontm23[2048];
+extern unsigned short fontm23[2048];
 
 /**
  * terminal_char_load - Store a character into the user definable
@@ -281,7 +281,7 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
   // Clear char data. 
   memset(char_data,0,sizeof(char_data));
   memset(PIX_WEIGHTS,0,sizeof(PIX_WEIGHTS));
-  memset(&fontm23[charNum*6],0,6);
+  memset(&fontm23[charNum*6],0,12);
   
   // Transpose character data.  
   for (curr_word=0;curr_word<8;curr_word++)
@@ -308,7 +308,7 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
   	  for (v=5; v-->0; )
   	    {
   	      if (PIX_WEIGHTS[TAB_0_25[u]+v] >= PIX_THRESH[TAB_0_25[u]+v])
-  		fontm23[(charNum*6)+u]|=BTAB[v];
+  		fontm23[(charNum*6)+u]|=BTAB[v]<<8;
   	    }
   	}
     }
@@ -321,7 +321,7 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
 	    {
 	      if (char_data[u] & (1<<v))
 		{
-		  fontm23[(charNum*6)+TAB_0_5i[u]]|=BTAB_5[v];
+		  fontm23[(charNum*6)+TAB_0_5i[u]]|=BTAB_5[v]<<8;
 		}
 	    }
 	}
@@ -345,12 +345,12 @@ void terminal_char_load_medres(padWord charNum, charData theChar)
     }
 
   // OR pixel rows together, may not work for this one.
-  fontm23[(charNum*6)+0]=char_data[0]|char_data[1]|char_data[2];
-  fontm23[(charNum*6)+1]=char_data[3]|char_data[4];
-  fontm23[(charNum*6)+2]=char_data[5]|char_data[6]|char_data[7];
-  fontm23[(charNum*6)+3]=char_data[8]|char_data[9];
-  fontm23[(charNum*6)+4]=char_data[10]|char_data[11]|char_data[12];
-  fontm23[(charNum*6)+5]=char_data[13]|char_data[14]|char_data[15];
+  fontm23[(charNum*6)+0]=char_data[0]|char_data[1]|char_data[2]<<8;
+  fontm23[(charNum*6)+1]=char_data[3]|char_data[4]<<8;
+  fontm23[(charNum*6)+2]=char_data[5]|char_data[6]|char_data[7]<<8;
+  fontm23[(charNum*6)+3]=char_data[8]|char_data[9]<<8;
+  fontm23[(charNum*6)+4]=char_data[10]|char_data[11]|char_data[12]<<8;
+  fontm23[(charNum*6)+5]=char_data[13]|char_data[14]|char_data[15]<<8;
   
 }
 
@@ -371,18 +371,18 @@ void terminal_char_load_hires(padWord charNum, charData theChar)
     }
 
   // OR pixel rows together
-  fontm23[(charNum*12)+0]=char_data[0];
-  fontm23[(charNum*12)+1]=char_data[1];
-  fontm23[(charNum*12)+2]=char_data[2]|char_data[3];
-  fontm23[(charNum*12)+3]=char_data[4];
-  fontm23[(charNum*12)+4]=char_data[5];
-  fontm23[(charNum*12)+5]=char_data[6]|char_data[7];
-  fontm23[(charNum*12)+6]=char_data[8];
-  fontm23[(charNum*12)+7]=char_data[9];
-  fontm23[(charNum*12)+8]=char_data[10]|char_data[11];
-  fontm23[(charNum*12)+9]=char_data[12];
-  fontm23[(charNum*12)+10]=char_data[13];
-  fontm23[(charNum*12)+11]=char_data[14]|char_data[15];
+  fontm23[(charNum*12)+0]=char_data[0]<<8;
+  fontm23[(charNum*12)+1]=char_data[1]<<8;
+  fontm23[(charNum*12)+2]=char_data[2]|char_data[3]<<8;
+  fontm23[(charNum*12)+3]=char_data[4]<<8;
+  fontm23[(charNum*12)+4]=char_data[5]<<8;
+  fontm23[(charNum*12)+5]=char_data[6]|char_data[7]<<8;
+  fontm23[(charNum*12)+6]=char_data[8]<<8;
+  fontm23[(charNum*12)+7]=char_data[9]<<8;
+  fontm23[(charNum*12)+8]=char_data[10]|char_data[11]<<8;
+  fontm23[(charNum*12)+9]=char_data[12]<<8;
+  fontm23[(charNum*12)+10]=char_data[13]<<8;
+  fontm23[(charNum*12)+11]=char_data[14]|char_data[15]<<8;
 }
 
 void terminal_char_load_ttmedres(padWord charNum, charData theChar)
@@ -402,21 +402,21 @@ void terminal_char_load_ttmedres(padWord charNum, charData theChar)
     }
 
   // OR pixel rows together
-  fontm23[(charNum*15)+0]=char_data[0];
-  fontm23[(charNum*15)+1]=char_data[1];
-  fontm23[(charNum*15)+2]=char_data[2];
-  fontm23[(charNum*15)+3]=char_data[3];
-  fontm23[(charNum*15)+4]=char_data[4];
-  fontm23[(charNum*15)+5]=char_data[5];
-  fontm23[(charNum*15)+6]=char_data[6];
-  fontm23[(charNum*15)+7]=char_data[7];
-  fontm23[(charNum*15)+8]=char_data[8];
-  fontm23[(charNum*15)+9]=char_data[9];
-  fontm23[(charNum*15)+10]=char_data[10];
-  fontm23[(charNum*15)+11]=char_data[11];
-  fontm23[(charNum*15)+12]=char_data[12];
-  fontm23[(charNum*15)+13]=char_data[13];
-  fontm23[(charNum*15)+14]=char_data[14]|char_data[15];  
+  fontm23[(charNum*15)+0]=char_data[0]<<8;
+  fontm23[(charNum*15)+1]=char_data[1]<<8;
+  fontm23[(charNum*15)+2]=char_data[2]<<8;
+  fontm23[(charNum*15)+3]=char_data[3]<<8;
+  fontm23[(charNum*15)+4]=char_data[4]<<8;
+  fontm23[(charNum*15)+5]=char_data[5]<<8;
+  fontm23[(charNum*15)+6]=char_data[6]<<8;
+  fontm23[(charNum*15)+7]=char_data[7]<<8;
+  fontm23[(charNum*15)+8]=char_data[8]<<8;
+  fontm23[(charNum*15)+9]=char_data[9]<<8;
+  fontm23[(charNum*15)+10]=char_data[10]<<8;
+  fontm23[(charNum*15)+11]=char_data[11]<<8;
+  fontm23[(charNum*15)+12]=char_data[12]<<8;
+  fontm23[(charNum*15)+13]=char_data[13]<<8;
+  fontm23[(charNum*15)+14]=char_data[14]|char_data[15]<<8;
 }
 
 void terminal_char_load_fullres(padWord charnum, charData theChar)
@@ -432,6 +432,7 @@ void terminal_char_load_fullres(padWord charnum, charData theChar)
 	  if (theChar[curr_word] & 1<<u)
 	    {
 	      fontm23[(charnum*FONT_SIZE_Y)+u^0x0f&0x0f]|=BTAB[curr_word];
+	      fontm23[(charnum*FONT_SIZE_Y)+u^0x0f&0x0f]<<8;
 	    }
 	}
     }
