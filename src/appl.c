@@ -216,7 +216,6 @@ static void appl_about(WINDOW *null, int index, int title, void *data)
 void applmain(void)
 {
   appl_clear_screen();
-  ShowPLATO((padByte *)splash,splash_size);
   
   for (;;)
     EvntWindom( MU_MESAG|MU_TIMER|MU_KEYBD|MU_BUTTON);

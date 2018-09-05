@@ -53,6 +53,9 @@ extern int16_t appl_atari_med_res;      // Are we in Atari Med Res (640x200?)
 extern int16_t appl_atari_low_res;      // Are we in Atari Low Res (640x200?)
 extern int16_t appl_atari_tt_med_res;   // Are we in Atari TT Med Res (640x480?)
 
+extern uint8_t splash[];
+extern uint16_t splash_size;
+
 /**
  * terminal_init()
  * Initialize terminal state
@@ -60,6 +63,14 @@ extern int16_t appl_atari_tt_med_res;   // Are we in Atari TT Med Res (640x480?)
 void terminal_init(void)
 {
   terminal_set_tty();
+}
+
+/**
+ * terminal_show_greeting(void) - Show greeting
+ */
+void terminal_show_greeting(void)
+{
+  ShowPLATO((padByte *)splash,splash_size);
 }
 
 /**
@@ -84,12 +95,15 @@ void terminal_set_tty(void)
   Rotate=padF;
   Reverse=padF;
   CurMem=M0;
-  /* CurMode=ModeRewrite; */
-  CurMode=ModeWrite;    /* For speed reasons. */
+  CurMode=ModeRewrite;
+  /* CurMode=ModeWrite;    /\* For speed reasons. *\/ */
   CharWide=8;
   CharHigh=16;
   TTYLoc.x = 0;        // leftmost coordinate on screen
-  TTYLoc.y = 495;      // Top of screen - one character height
+  if (already_started)
+    TTYLoc.y=495;
+  else
+    TTYLoc.y = 319;      // Top of screen - one character height
 }
 
 /**

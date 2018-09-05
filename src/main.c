@@ -16,7 +16,10 @@ int main(void)
 {
   screen_init();
   applinit();
-
+  terminal_show_greeting();
+  terminal_init();
+  already_started=true;
+  
   if (appl_init_successful==true)
     {
       applmain();

@@ -19,6 +19,11 @@
 void terminal_init(void);
 
 /**
+ * terminal_show_greeting(void) - Show greeting
+ */
+void terminal_show_greeting(void);
+
+/**
  * terminal_initial_position()
  * Set terminal initial position after splash screen.
  */
