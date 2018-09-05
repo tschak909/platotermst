@@ -173,21 +173,21 @@ void screen_dot_draw(padPt* Coord, bool queue)
 {
   short pxyarray[4];
 
+    switch(CurMode)
+    {
+    case ModeWrite:
+      vswr_mode(app.aeshdl,1);
+      break;
+    case ModeErase:
+      vswr_mode(app.aeshdl,3);
+      break;
+    }
+  
   pxyarray[0]=screen_x(Coord->x);
   pxyarray[1]=screen_y(Coord->y);
   pxyarray[2]=screen_x(Coord->x);
   pxyarray[3]=screen_y(Coord->y);
 
-  if (CurMode==ModeErase || CurMode==ModeInverse)
-    {
-      vsf_color(app.aeshdl,0); // white
-    }
-  else
-    {
-      vsf_color(app.aeshdl,1); // black
-    }
-
-  
   v_pline(app.aeshdl,2,pxyarray);
 
   if (queue==true)
@@ -201,6 +201,17 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
 {
   short pxyarray[4];
 
+  switch(CurMode)
+    {
+    case ModeWrite:
+      vswr_mode(app.aeshdl,1);
+      break;
+    case ModeErase:
+      vswr_mode(app.aeshdl,3);
+      break;
+    }
+
+  
   pxyarray[0]=screen_x(Coord1->x);
   pxyarray[1]=screen_y(Coord1->y);
   pxyarray[2]=screen_x(Coord2->x);
@@ -278,19 +289,19 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
       break;
     }
   
-  srcMFDB.fd_w=FONT_SIZE_X;
-  srcMFDB.fd_h=FONT_SIZE_Y;
+  srcMFDB.fd_w=FONT_SIZE_X-1;
+  srcMFDB.fd_h=FONT_SIZE_Y-1;
   srcMFDB.fd_wdwidth=1;
   srcMFDB.fd_stand=0;
   srcMFDB.fd_nplanes=1;
   
   pxyarray[0]=pxyarray[1]=0;
-  pxyarray[2]=FONT_SIZE_X;
-  pxyarray[3]=FONT_SIZE_Y;
+  pxyarray[2]=FONT_SIZE_X-1;
+  pxyarray[3]=FONT_SIZE_Y-1;
   pxyarray[4]=screen_x(Coord->x);
   pxyarray[5]=screen_y(Coord->y)-FONT_SIZE_Y;
-  pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X;
-  pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y;
+  pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X-1;
+  pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y-1;
   
   for (i=0;i<count;++i)
     {
@@ -298,7 +309,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
       ++ch;
       a+=offset;
       srcMFDB.fd_addr=&curfont[(a*FONT_SIZE_Y)];
-      vrt_cpyfm(app.aeshdl,1,pxyarray,&srcMFDB,&destMFDB,colors);
+      vrt_cpyfm(app.aeshdl,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
       pxyarray[4]+=FONT_SIZE_X;
       pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
     }
