@@ -13,6 +13,8 @@ DrawElement* screen_queue_create(short mode,
 				 short y2,
 				 unsigned char* ch,
 				 unsigned char chlen,
+				 short background_color_index,
+				 short foreground_color_index,
 				 DrawElement* next)
 {
   DrawElement* new_element = (DrawElement*)malloc(sizeof(DrawElement));
@@ -29,6 +31,8 @@ DrawElement* screen_queue_create(short mode,
   new_element->chlen=chlen;
   new_element->CurMode=CurMode;
   new_element->CurMem=CurMem;
+  new_element->background_color_index=background_color_index;
+  new_element->foreground_color_index=foreground_color_index;
   new_element->next=next;
   
   return new_element;
@@ -41,9 +45,11 @@ DrawElement* screen_queue_prepend(DrawElement* head,
 				  short x2,
 				  short y2,
 				  unsigned char* ch,
-				  unsigned char chlen)
+				  unsigned char chlen,
+				  short background_color_index,
+				  short foreground_color_index)
 {
-  DrawElement* new_element = screen_queue_create(mode,x1,y1,x2,y2,ch,chlen,head);
+  DrawElement* new_element = screen_queue_create(mode,x1,y1,x2,y2,ch,chlen,background_color_index,foreground_color_index,head);
   head=new_element;
   return head;
 }
@@ -55,17 +61,19 @@ DrawElement* screen_queue_append(DrawElement* head,
 				 short x2,
 				 short y2,
 				 unsigned char* ch,
-				 unsigned char chlen)
+				 unsigned char chlen,
+				 short background_color_index,
+				 short foreground_color_index)
 {
   if (head==NULL)
-    return screen_queue_prepend(head, mode, x1, y1, x2, y2, ch, chlen);
+    return screen_queue_prepend(head, mode, x1, y1, x2, y2, ch, chlen,background_color_index,foreground_color_index);
 
   // Scoot to end.
   DrawElement* cursor = head;
   while (cursor->next != NULL)
     cursor=cursor->next;
 
-  DrawElement* new_element = screen_queue_create(mode, x1, y1, x2, y2, ch, chlen, NULL);
+  DrawElement* new_element = screen_queue_create(mode, x1, y1, x2, y2, ch, chlen, background_color_index, foreground_color_index, NULL);
   cursor->next = new_element;
 
   return head;
