@@ -16,6 +16,7 @@
 #include "terminal.h"
 #include "screen.h"
 #include "appl.h"
+#include "splash.h"
 
 /**
  * ASCII Features to return in Features
@@ -53,9 +54,6 @@ extern int16_t appl_atari_med_res;      // Are we in Atari Med Res (640x200?)
 extern int16_t appl_atari_low_res;      // Are we in Atari Low Res (640x200?)
 extern int16_t appl_atari_tt_med_res;   // Are we in Atari TT Med Res (640x480?)
 
-extern uint8_t splash[];
-extern uint16_t splash_size;
-
 /**
  * terminal_init()
  * Initialize terminal state
@@ -70,7 +68,7 @@ void terminal_init(void)
  */
 void terminal_show_greeting(void)
 {
-  ShowPLATO((padByte *)splash,splash_size);
+  ShowPLATO((padByte *)splash,sizeof(splash));
 }
 
 /**

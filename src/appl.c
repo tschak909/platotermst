@@ -34,8 +34,6 @@ extern unsigned short scalex_lores[];
 extern unsigned short scaley_lores[];
 extern unsigned short scalex_fullres[];
 extern unsigned short scaley_fullres[];
-extern unsigned short background_color[3];
-extern unsigned short foreground_color[3];
 
 int16_t magic_os=FALSE;                // Are we running under MagiC?
 int16_t mint_os=FALSE;                 // Are we running under MINT?
@@ -138,22 +136,12 @@ void applinit(void)
   window_x=xw;
   window_y=yw;
 
-  if (appl_is_mono)
-    {
-      background_color[0]=0;
-      background_color[1]=0;
-      background_color[2]=0;
-      foreground_color[0]=1000;
-      foreground_color[1]=1000;
-      foreground_color[2]=1000;
-    }
-  
   evnt.timer=0;
 
   terminal_init();
   terminal_initial_position();
   
-  EvntAttach(win,WM_REDRAW,appl_redraw);  
+  EvntAttach(win,WM_REDRAW,appl_redraw);
   EvntAttach(NULL, AP_TERM, appl_term);
   EvntAttach(win,WM_XTIMER,appl_timer);
   EvntAttach(win,WM_XKEYBD,appl_kybd);

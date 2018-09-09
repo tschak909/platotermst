@@ -1,17 +1,8 @@
 #include "protocol.h"
 
-padByte splash[] = {
-  0x1B,
-  0x02,
+const padByte splash[] = {
 0X1B,
-0X0C,
-0X1B,
-0X12,
-0X1B,
-0XD1,
-0XC0,
-0X50,
-0XC0,
+0X02,
 0X1B,
 0XE1,
 0XFF,
@@ -31,6 +22,7 @@ padByte splash[] = {
 0X1D,
 0XAF,
 0XF0,
+0XA0,
 0XC0,
 0X1B,
 0X5A,
@@ -1591,8 +1583,6 @@ padByte splash[] = {
 0XFC,
 0XAF,
 0X5F,
-  0x1B,
-  0x03
+0X1B,
+0X03
 };
-
-short splash_size=1592;

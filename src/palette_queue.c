@@ -82,9 +82,9 @@ short palette_queue_find_color_index(PaletteElement* head, padRGB* theColor)
   PaletteElement* cursor=head;
   while (cursor->next != NULL)
     {
-      if (cursor->red==theColor->red &&
-	  cursor->green==theColor->green &&
-	  cursor->blue==theColor->blue)
+      if ((cursor->red==theColor->red) &&
+	  (cursor->green==theColor->green) &&
+	  (cursor->blue==theColor->blue))
 	return cursor->palette_index;
       cursor=cursor->next;
     }

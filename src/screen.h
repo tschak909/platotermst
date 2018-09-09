@@ -15,6 +15,9 @@
 #include "screen_queue.h"
 #include "palette_queue.h"
 
+#define FGBG_FOREGROUND 0
+#define FGBG_BACKGROUND 1
+
 /**
  * screen_init() - Set up the screen
  */
@@ -125,6 +128,11 @@ void screen_next_redraw(DrawElement* element);
  * screen_redraw()
  */
 void screen_redraw(void);
+
+/**
+ * Set selected screen color (fg/bg)
+ */
+void screen_color(unsigned char fgbg, padRGB* theColor);
 
 /**
  * Set foreground color
