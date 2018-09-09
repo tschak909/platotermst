@@ -83,7 +83,7 @@ short screen_y(short y)
  */
 void screen_init(void)
 {
-  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,0,0,NULL);
+  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,0,0,0,0,0,NULL);
 }
 
 /**
@@ -126,7 +126,7 @@ void screen_clear(void)
   short foreground_color[3]={foreground_rgb.red*VDI_COLOR_SCALE,foreground_rgb.green*VDI_COLOR_SCALE,background_rgb.blue*VDI_COLOR_SCALE};
   appl_clear_screen();
   screen_queue_dispose(screen_queue);
-  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,0,0,NULL);
+  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,0,0,0,0,0,NULL);
   palette_queue_dispose(palette_queue);
 
   palette_queue=palette_queue_create(0,background_rgb.red,background_rgb.green,background_rgb.blue,NULL);
@@ -162,7 +162,7 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue)
   v_bar(app.aeshdl,pxyarray);
   
   if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index);
+    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index,0,0,0);
   
 }
 
@@ -191,7 +191,7 @@ void screen_dot_draw(padPt* Coord, bool queue)
   v_pline(app.aeshdl,2,pxyarray);
 
   if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_DOT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index);
+    screen_queue_append(screen_queue,SCREEN_QUEUE_DOT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
 }
 
 /**
@@ -220,7 +220,7 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
    v_pline(app.aeshdl,2,pxyarray);
    if (queue==true)
      {
-       screen_queue_append(screen_queue,SCREEN_QUEUE_LINE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index);
+       screen_queue_append(screen_queue,SCREEN_QUEUE_LINE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index,0,0,0);
      }
 }
 /**
@@ -367,7 +367,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
     }
   if (queue==true)
     {
-      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count,background_color_index,foreground_color_index);
+      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count,background_color_index,foreground_color_index,0,0,0);
     }
   
 }
@@ -466,6 +466,7 @@ void screen_next_redraw(DrawElement* element)
       vsl_color(app.aeshdl,element->foreground_color_index);
       screen_paint(&coord1,false);
       break;
+   
     }
 }
 
@@ -640,14 +641,14 @@ void screen_paint(padPt* Coord, bool queue)
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
       if (queue==true)
 	{
-	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index);
+	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
 	}
     }
   else
     {
       if (queue==true)
 	{
-	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index);
+	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
 	}
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),palette_queue_find_color_index(palette_queue,&background_rgb));
     }

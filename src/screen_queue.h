@@ -12,6 +12,8 @@
 #define SCREEN_QUEUE_CHAR        2
 #define SCREEN_QUEUE_BLOCK_ERASE 3
 #define SCREEN_QUEUE_PAINT       4
+#define SCREEN_QUEUE_FOREGROUND  5
+#define SCREEN_QUEUE_BACKGROUND  6
 
 // Singly linked list of drawing elements.
 typedef struct draw_element {
@@ -26,12 +28,15 @@ typedef struct draw_element {
   CharMem CurMem;            // Current text memory.
   short background_color_index; // Background color index
   short foreground_color_index; // Foreground color index
+  unsigned char red;                 // red color element for color change
+  unsigned char green;               // green color element for color change
+  unsigned char blue;                // blue color element for color change
   struct draw_element* next; // Next element.
 } DrawElement;
 
-DrawElement* screen_queue_create(short mode, short x1, short y1, short x2, short y2, unsigned char* ch, unsigned char chlen, short background_color_index, short foreground_color_index, DrawElement* next);
-DrawElement* screen_queue_prepend(DrawElement* head, short mode, short x1, short y1, short x2, short y2, unsigned char* ch, unsigned char chlen, short background_color_index, short foreground_color_index);
-DrawElement* screen_queue_append(DrawElement* head, short mode, short x1, short y1, short x2, short y2, unsigned char* ch, unsigned char chlen, short background_color_index, short foreground_color_index);
+DrawElement* screen_queue_create(short mode, short x1, short y1, short x2, short y2, unsigned char* ch, unsigned char chlen, short background_color_index, short foreground_color_index, unsigned char red, unsigned char green, unsigned char blue, DrawElement* next);
+DrawElement* screen_queue_prepend(DrawElement* head, short mode, short x1, short y1, short x2, short y2, unsigned char* ch, unsigned char chlen, short background_color_index, short foreground_color_index, unsigned char red, unsigned char green, unsigned char blue);
+DrawElement* screen_queue_append(DrawElement* head, short mode, short x1, short y1, short x2, short y2, unsigned char* ch, unsigned char chlen, short background_color_index, short foreground_color_index, unsigned char red, unsigned char green, unsigned char blue);
 void screen_queue_dispose(DrawElement* head);
 int screen_queue_count(DrawElement* head);
 

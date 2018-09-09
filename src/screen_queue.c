@@ -15,6 +15,9 @@ DrawElement* screen_queue_create(short mode,
 				 unsigned char chlen,
 				 short background_color_index,
 				 short foreground_color_index,
+				 unsigned char red,
+				 unsigned char green,
+				 unsigned char blue,
 				 DrawElement* next)
 {
   DrawElement* new_element = (DrawElement*)malloc(sizeof(DrawElement));
@@ -33,6 +36,9 @@ DrawElement* screen_queue_create(short mode,
   new_element->CurMem=CurMem;
   new_element->background_color_index=background_color_index;
   new_element->foreground_color_index=foreground_color_index;
+  new_element->red=red;
+  new_element->green=green;
+  new_element->blue=blue;
   new_element->next=next;
   
   return new_element;
@@ -47,9 +53,12 @@ DrawElement* screen_queue_prepend(DrawElement* head,
 				  unsigned char* ch,
 				  unsigned char chlen,
 				  short background_color_index,
-				  short foreground_color_index)
+				  short foreground_color_index,
+				  unsigned char red,
+				  unsigned char green,
+				  unsigned char blue)
 {
-  DrawElement* new_element = screen_queue_create(mode,x1,y1,x2,y2,ch,chlen,background_color_index,foreground_color_index,head);
+  DrawElement* new_element = screen_queue_create(mode,x1,y1,x2,y2,ch,chlen,background_color_index,foreground_color_index,red,green,blue,head);
   head=new_element;
   return head;
 }
@@ -63,17 +72,20 @@ DrawElement* screen_queue_append(DrawElement* head,
 				 unsigned char* ch,
 				 unsigned char chlen,
 				 short background_color_index,
-				 short foreground_color_index)
+				 short foreground_color_index,
+				 unsigned char red,
+				 unsigned char green,
+				 unsigned char blue)
 {
   if (head==NULL)
-    return screen_queue_prepend(head, mode, x1, y1, x2, y2, ch, chlen,background_color_index,foreground_color_index);
+    return screen_queue_prepend(head, mode, x1, y1, x2, y2, ch, chlen,background_color_index,foreground_color_index,red,green,blue);
 
   // Scoot to end.
   DrawElement* cursor = head;
   while (cursor->next != NULL)
     cursor=cursor->next;
 
-  DrawElement* new_element = screen_queue_create(mode, x1, y1, x2, y2, ch, chlen, background_color_index, foreground_color_index, NULL);
+  DrawElement* new_element = screen_queue_create(mode, x1, y1, x2, y2, ch, chlen, background_color_index, foreground_color_index, red, green, blue, NULL);
   cursor->next = new_element;
 
   return head;
