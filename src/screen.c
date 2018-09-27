@@ -141,13 +141,13 @@ void screen_clear(void)
   memset(palette,-1,sizeof(palette));
   highestColorIndex=0;
   palette[0]=background_rgb;
-  highestColorIndex++;
-  if ((background_rgb.red   == foreground_rgb.red) &&
-      (background_rgb.green == foreground_rgb.green) &&
-      (background_rgb.blue  == foreground_rgb.blue))
+  ++highestColorIndex;
+  if ((background_rgb.red   != foreground_rgb.red) &&
+      (background_rgb.green != foreground_rgb.green) &&
+      (background_rgb.blue  != foreground_rgb.blue))
     {
       palette[1]=foreground_rgb;
-      highestColorIndex++;
+      ++highestColorIndex;
     }
   screen_remap_palette();
 }
