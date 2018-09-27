@@ -159,4 +159,6 @@ void screen_background(padRGB* theColor);
  */
 void screen_paint(padPt* Coord, bool queue);
 
+void screen_palette_dump(void);
+
 #endif /* SCREEN_H */

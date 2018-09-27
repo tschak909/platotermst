@@ -428,7 +428,7 @@ void terminal_char_load_ttmedres(padWord charNum, charData theChar)
   fontm23[(charNum*15)+11]=char_data[11]<<8;
   fontm23[(charNum*15)+12]=char_data[12]<<8;
   fontm23[(charNum*15)+13]=char_data[13]<<8;
-  fontm23[(charNum*15)+14]=char_data[14]|char_data[15]<<8;
+  fontm23[(charNum*15)+14]=(char_data[14]|char_data[15])<<8;
 }
 
 void terminal_char_load_fullres(padWord charnum, charData theChar)

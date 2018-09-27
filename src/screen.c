@@ -129,6 +129,7 @@ void screen_remap_palette(void)
       short current_color[3]={palette[i].red*VDI_COLOR_SCALE,palette[i].green*VDI_COLOR_SCALE,palette[i].blue*VDI_COLOR_SCALE};
       vs_color(app.aeshdl,i,current_color);
     }
+  screen_palette_dump();
 }
 
 /**
@@ -510,7 +511,7 @@ void screen_palette_dump(void)
 {
   int i=0;
   int x=1;
-  int y=32;
+  int y=16;
   short pxyarray[4]={1,200,0,0};
   for (i=0;i<16;++i)
     {
@@ -518,10 +519,10 @@ void screen_palette_dump(void)
       vsl_color(app.aeshdl,1);
       pxyarray[0]=x;
       pxyarray[1]=y;
-      pxyarray[2]=x+32;
-      pxyarray[3]=y+32;
+      pxyarray[2]=x+16;
+      pxyarray[3]=y+16;
       v_bar(app.aeshdl,pxyarray);
-      x+=32;
+      x+=16;
     }
   vsf_color(app.aeshdl,foreground_color_index);
   vsl_color(app.aeshdl,foreground_color_index);
