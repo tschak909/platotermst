@@ -608,7 +608,7 @@ void screen_color(unsigned char fgbg, padRGB* theColor)
       vdi_palette_color[0]=theColor->red*VDI_COLOR_SCALE;
       vdi_palette_color[1]=theColor->green*VDI_COLOR_SCALE;
       vdi_palette_color[2]=theColor->blue*VDI_COLOR_SCALE;
-      vs_color(app.aeshdl,highestColorIndex,vdi_palette_color);
+      vs_color(app.aeshdl,color_index,vdi_palette_color);
     }
   else
     {
@@ -628,7 +628,7 @@ void screen_color(unsigned char fgbg, padRGB* theColor)
     {
       background_color_index=color_index;
     }
-  screen_palette_dump();
+  /* screen_palette_dump(); */
 }
 
 /**
