@@ -137,6 +137,7 @@ void screen_remap_palette(void)
 void screen_clear(void)
 {
   appl_clear_screen();
+  screen_queue_dispose(screen_queue);
   memset(palette,-1,sizeof(palette));
   highestColorIndex=0;
   palette[0]=background_rgb;
