@@ -202,6 +202,7 @@ void screen_dot_draw(padPt* Coord, bool queue)
   pxyarray[2]=screen_x(Coord->x);
   pxyarray[3]=screen_y(Coord->y);
 
+  vsl_type(app.aeshdl,1); // Solid
   v_pline(app.aeshdl,2,pxyarray);
 
   if (queue==true)
@@ -231,11 +232,12 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
   pxyarray[2]=screen_x(Coord2->x);
   pxyarray[3]=screen_y(Coord2->y);
 
-   v_pline(app.aeshdl,2,pxyarray);
-   if (queue==true)
-     {
-       screen_queue_append(screen_queue,SCREEN_QUEUE_LINE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index,0,0,0);
-     }
+  vsl_type(app.aeshdl,1); // Solid
+  v_pline(app.aeshdl,2,pxyarray);
+  if (queue==true)
+    {
+      screen_queue_append(screen_queue,SCREEN_QUEUE_LINE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index,0,0,0);
+    }
 }
 /**
  * screen_char_bold_shift() - enlarge character for bold mode
