@@ -545,7 +545,6 @@ void screen_foreground(padRGB* theColor)
   foreground_rgb.red=theColor->red;
   foreground_rgb.green=theColor->green;
   foreground_rgb.blue=theColor->blue;
-  screen_palette_dump();
 }
 
 /**
@@ -565,7 +564,6 @@ void screen_background(padRGB* theColor)
   background_rgb.red=theColor->red;
   background_rgb.green=theColor->green;
   background_rgb.blue=theColor->blue;
-  screen_palette_dump();
 }
 
 /**
@@ -581,7 +579,7 @@ short screen_color_matching(padRGB* theColor)
 	  (palette[i].blue ==(theColor->blue)))
         return i;
       else if (i>highestColorIndex)
-        return highestColorIndex++;
+        return ++highestColorIndex;
     }
   return -1;
 }
@@ -610,9 +608,6 @@ short screen_color(padRGB* theColor)
   palette[index].green=theColor->green;
   palette[index].blue=theColor->blue;
   screen_remap_palette();
-#ifdef __PALETTE_DEBUG__
-  screen_palette_dump();
-#endif
   return index;
 }
 
@@ -623,6 +618,7 @@ void screen_paint(padPt* Coord, bool queue)
 {
   if (appl_is_mono==1)
     {
+      vsf_color(app.aeshdl,foreground_color_index);
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
       if (queue==true)
 	{
@@ -635,6 +631,7 @@ void screen_paint(padPt* Coord, bool queue)
 	{
 	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
 	}
+      vsf_color(app.aeshdl,foreground_color_index);
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
     }
 }
