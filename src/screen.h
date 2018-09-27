@@ -13,7 +13,6 @@
 #include <stdbool.h>
 #include "protocol.h"
 #include "screen_queue.h"
-#include "palette_queue.h"
 
 #define FGBG_FOREGROUND 0
 #define FGBG_BACKGROUND 1
@@ -84,6 +83,12 @@ void screen_wait(void);
 void screen_beep(void);
 
 /**
+ * screen_remap_palette(void)
+ * Remap the screen palette
+ */
+void screen_remap_palette(void);
+
+/**
  * screen_clear - Clear the screen
  */
 void screen_clear(void);
@@ -130,9 +135,14 @@ void screen_next_redraw(DrawElement* element);
 void screen_redraw(void);
 
 /**
- * Set selected screen color (fg/bg)
+ * get screen color for mono displays
  */
-void screen_color(unsigned char fgbg, padRGB* theColor);
+short screen_color_mono(padRGB* theColor);
+
+/**
+ * return screen color index
+ */
+short screen_color(padRGB* theColor);
 
 /**
  * Set foreground color

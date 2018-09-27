@@ -16,17 +16,17 @@ unsigned char CharWide=8;
 unsigned char CharHigh=16;
 padPt TTYLoc;
 DrawElement* screen_queue=NULL;
-PaletteElement* palette_queue=NULL;
+padRGB palette[16];
 unsigned char FONT_SIZE_X;
 unsigned char FONT_SIZE_Y;
 unsigned short* scalex;
 unsigned short* scaley;
 unsigned char* font[];
-short highestColorIndex=0;
 short background_color_index=0;
 short foreground_color_index=1;
 padRGB background_rgb={0,0,0};
 padRGB foreground_rgb={255,255,255};
+unsigned char highestColorIndex=0;
 
 extern padBool FastText; /* protocol.c */
 
@@ -118,23 +118,37 @@ void screen_beep(void)
 }
 
 /**
+ * screen_remap_palette(void)
+ * Remap the screen palette
+ */
+void screen_remap_palette(void)
+{
+  int i=0;
+  for (i=0;i<16;++i)
+    {
+      short current_color[3]={palette[i].red*VDI_COLOR_SCALE,palette[i].green*VDI_COLOR_SCALE,palette[i].blue*VDI_COLOR_SCALE};
+      vs_color(app.aeshdl,i,current_color);
+    }
+}
+
+/**
  * screen_clear - Clear the screen
  */
 void screen_clear(void)
 {
-  short background_color[3]={background_rgb.red*VDI_COLOR_SCALE,background_rgb.green*VDI_COLOR_SCALE,background_rgb.blue*VDI_COLOR_SCALE};
-  short foreground_color[3]={foreground_rgb.red*VDI_COLOR_SCALE,foreground_rgb.green*VDI_COLOR_SCALE,background_rgb.blue*VDI_COLOR_SCALE};
   appl_clear_screen();
-  screen_queue_dispose(screen_queue);
-  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,0,0,0,0,0,NULL);
-  palette_queue_dispose(palette_queue);
-
-  palette_queue=palette_queue_create(0,background_rgb.red,background_rgb.green,background_rgb.blue,NULL);
-  palette_queue_append(palette_queue,1,foreground_rgb.red,foreground_rgb.green,foreground_rgb.blue);
-
+  memset(palette,-1,sizeof(palette));
   highestColorIndex=0;
-  vs_color(app.aeshdl,0,background_color);
-  vs_color(app.aeshdl,1,foreground_color);
+  palette[0]=background_rgb;
+  highestColorIndex++;
+  if ((background_rgb.red   == foreground_rgb.red) &&
+      (background_rgb.green == foreground_rgb.green) &&
+      (background_rgb.blue  == foreground_rgb.blue))
+    {
+      palette[1]=foreground_rgb;
+      highestColorIndex++;
+    }
+  screen_remap_palette();
 }
 
 /**
@@ -477,17 +491,9 @@ void screen_redraw(void)
 {
   unsigned short current_color[3];
   unsigned short i=0;
-  PaletteElement* palette_cursor = palette_queue;
   DrawElement* redraw_cursor = screen_queue;
-  
-  while(palette_cursor != NULL)
-    {
-      current_color[0]=palette_cursor->red*VDI_COLOR_SCALE;
-      current_color[1]=palette_cursor->green*VDI_COLOR_SCALE;
-      current_color[2]=palette_cursor->blue*VDI_COLOR_SCALE;
-      vs_color(app.aeshdl,palette_cursor->palette_index,current_color);
-      palette_cursor=palette_cursor->next;
-    }
+
+  screen_remap_palette();
   
   while(redraw_cursor != NULL)
     {
@@ -502,13 +508,13 @@ void screen_redraw(void)
  */
 void screen_palette_dump(void)
 {
-  PaletteElement* cursor=palette_queue;
+  int i=0;
   int x=1;
   int y=32;
   short pxyarray[4]={1,200,0,0};
-  while (cursor->next!=NULL)
+  for (i=0;i<16;++i)
     {
-      vsf_color(app.aeshdl,cursor->palette_index);
+      vsf_color(app.aeshdl,i);
       vsl_color(app.aeshdl,1);
       pxyarray[0]=x;
       pxyarray[1]=y;
@@ -516,22 +522,10 @@ void screen_palette_dump(void)
       pxyarray[3]=y+32;
       v_bar(app.aeshdl,pxyarray);
       x+=32;
-      cursor=cursor->next;
     }
   vsf_color(app.aeshdl,foreground_color_index);
   vsl_color(app.aeshdl,foreground_color_index);
     
-  /* int i=32; */
-  /* PaletteElement* cursor=palette_queue; */
-  
-  /* while (cursor->next!=NULL) */
-  /*   { */
-  /*     sprintf(tmptxt,"i: %02d r: %03d g: %03d b: %03d",cursor->palette_index,cursor->red,cursor->green,cursor->blue); */
-  /*     v_gtext(app.aeshdl,1,i,tmptxt); */
-  /*     cursor=cursor->next; */
-  /*     i+=16; */
-  /*   } */
-
 }
 
 /**
@@ -539,7 +533,19 @@ void screen_palette_dump(void)
  */
 void screen_foreground(padRGB* theColor)
 {
-  screen_color(FGBG_FOREGROUND,theColor);
+  short index;
+  if (appl_is_mono==1)
+    {
+      screen_color_mono(theColor);
+      return;
+    }
+  // otherwise, handle via palette based color setting.
+  index=screen_color(theColor);
+  foreground_color_index=index;
+  foreground_rgb.red=theColor->red;
+  foreground_rgb.green=theColor->green;
+  foreground_rgb.blue=theColor->blue;
+  screen_palette_dump();
 }
 
 /**
@@ -547,88 +553,67 @@ void screen_foreground(padRGB* theColor)
  */
 void screen_background(padRGB* theColor)
 {
-  screen_color(FGBG_BACKGROUND,theColor);
+  short index;
+  if (appl_is_mono==1)
+    {
+      screen_color_mono(theColor);
+      return;
+    }
+  // otherwise, handle via palette based color setting.
+  index=screen_color(theColor);
+  background_color_index=index;
+  background_rgb.red=theColor->red;
+  background_rgb.green=theColor->green;
+  background_rgb.blue=theColor->blue;
+  screen_palette_dump();
+}
+
+/**
+ * screen_color_matching(theColor)
+ */
+short screen_color_matching(padRGB* theColor)
+{
+  int i=0;
+  for (i=0;i<16;++i)
+    {
+      if ((palette[i].red  ==(theColor->red)) &&
+	  (palette[i].green==(theColor->green)) &&
+	  (palette[i].blue ==(theColor->blue)))
+        return i;
+      else if (i>highestColorIndex)
+        return highestColorIndex++;
+    }
+  return -1;
+}
+
+/**
+ * get screen color for mono displays
+ */
+short screen_color_mono(padRGB* theColor)
+{
+  if ((theColor->red == 0x00) &&
+      (theColor->green == 0x00) &&
+      (theColor->blue == 0x00))
+    {
+      return background_color_index;
+    }
+  return foreground_color_index;
 }
 
 /**
  * Set selected screen color (fg/bg)
  */
-void screen_color(unsigned char fgbg, padRGB* theColor)
+short screen_color(padRGB* theColor)
 {
-  short vdi_palette_color[3];
-  short color_index;
-  padRGB* saved_rgb;
-  
-  // Handle mono cases
-  if ((appl_is_mono) && (theColor->red==0 && theColor->green==0 && theColor->blue==0))
-    {
-      vsf_color(app.aeshdl,0); // White
-      vsl_color(app.aeshdl,0);
-      vsf_interior(app.aeshdl,1); // Solid interior
-
-      if (fgbg==FGBG_FOREGROUND)
-	foreground_color_index=0;
-      else if (fgbg==FGBG_BACKGROUND)
-	background_color_index=0;
-      return;
-    }
-  else if ((appl_is_mono) && (theColor->red==255 && theColor->green==255 && theColor->blue==255))
-    {
-      vsf_color(app.aeshdl,1); // Black
-      vsl_color(app.aeshdl,1);
-      vsf_interior(app.aeshdl,1); // Solid interior
-
-      if (fgbg==FGBG_FOREGROUND)
-	foreground_color_index=1;
-      else if (fgbg==FGBG_BACKGROUND)
-	background_color_index=1;
-      return;
-    }
-
-  // We're still here, handle the color cases.
-  if (fgbg==FGBG_FOREGROUND)
-    {
-      saved_rgb=&foreground_rgb;
-    }
-  else if (fgbg==FGBG_BACKGROUND)
-    {
-      saved_rgb=&background_rgb;
-    }
-  
-  color_index = palette_queue_find_color_index(palette_queue,theColor);
-
-  if (color_index==-1)
-    {
-      highestColorIndex++;
-      color_index=highestColorIndex;
-      palette_queue_append(palette_queue,color_index,theColor->red,theColor->green,theColor->blue);
-      saved_rgb->red=theColor->red;
-      saved_rgb->green=theColor->green;
-      saved_rgb->blue=theColor->blue;
-      vdi_palette_color[0]=theColor->red*VDI_COLOR_SCALE;
-      vdi_palette_color[1]=theColor->green*VDI_COLOR_SCALE;
-      vdi_palette_color[2]=theColor->blue*VDI_COLOR_SCALE;
-      vs_color(app.aeshdl,color_index,vdi_palette_color);
-    }
-  else
-    {
-      saved_rgb->red=theColor->red;
-      saved_rgb->green=theColor->green;
-      saved_rgb->blue=theColor->blue;
-    }
-
-  if (fgbg==FGBG_FOREGROUND)
-    {
-      foreground_color_index=color_index;
-      vsl_color(app.aeshdl,foreground_color_index);
-      vsf_color(app.aeshdl,foreground_color_index);
-      vsf_interior(app.aeshdl,1); // Solid interior
-    }
-  else if (fgbg==FGBG_BACKGROUND)
-    {
-      background_color_index=color_index;
-    }
-  /* screen_palette_dump(); */
+  short index=screen_color_matching(theColor);
+  palette[index].red=theColor->red;
+  palette[index].green=theColor->green;
+  palette[index].blue=theColor->blue;
+  screen_remap_palette();
+#ifdef __PALETTE_DEBUG__
+  screen_palette_dump();
+#endif
+  return index;
 }
 
 /**
@@ -650,6 +635,6 @@ void screen_paint(padPt* Coord, bool queue)
 	{
 	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
 	}
-      v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),palette_queue_find_color_index(palette_queue,&background_rgb));
+      v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
     }
 }
