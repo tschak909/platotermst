@@ -129,7 +129,6 @@ void screen_remap_palette(void)
       short current_color[3]={palette[i].red*VDI_COLOR_SCALE,palette[i].green*VDI_COLOR_SCALE,palette[i].blue*VDI_COLOR_SCALE};
       vs_color(app.aeshdl,i,current_color);
     }
-  screen_palette_dump();
 }
 
 /**
@@ -490,8 +489,6 @@ void screen_next_redraw(DrawElement* element)
  */
 void screen_redraw(void)
 {
-  unsigned short current_color[3];
-  unsigned short i=0;
   DrawElement* redraw_cursor = screen_queue;
 
   screen_remap_palette();
@@ -620,6 +617,7 @@ void screen_paint(padPt* Coord, bool queue)
   if (appl_is_mono==1)
     {
       vsf_color(app.aeshdl,foreground_color_index);
+      vsf_interior(app.aeshdl,1); // Solid interior
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
       if (queue==true)
 	{
@@ -633,6 +631,7 @@ void screen_paint(padPt* Coord, bool queue)
 	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
 	}
       vsf_color(app.aeshdl,foreground_color_index);
+      vsf_interior(app.aeshdl,1); // Solid interior
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
     }
 }
