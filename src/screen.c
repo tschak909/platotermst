@@ -15,7 +15,6 @@
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
 padPt TTYLoc;
-DrawElement* screen_queue=NULL;
 padRGB palette[16];
 unsigned char FONT_SIZE_X;
 unsigned char FONT_SIZE_Y;
@@ -83,7 +82,6 @@ short screen_y(short y)
  */
 void screen_init(void)
 {
-  screen_queue=screen_queue_create(0,0,0,0,0,NULL,0,0,0,0,0,0,NULL);
 }
 
 /**
@@ -137,7 +135,6 @@ void screen_remap_palette(void)
 void screen_clear(void)
 {
   appl_clear_screen();
-  screen_queue_dispose(screen_queue);
   memset(palette,-1,sizeof(palette));
   highestColorIndex=0;
   palette[0]=background_rgb;
@@ -155,7 +152,7 @@ void screen_clear(void)
 /**
  * screen_block_draw(Coord1, Coord2) - Perform a block fill from Coord1 to Coord2
  */
-void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue)
+void screen_block_draw(padPt* Coord1, padPt* Coord2)
 {
   short pxyarray[4];
   pxyarray[0]=screen_x(Coord1->x);
@@ -174,17 +171,13 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2, bool queue)
       vsf_color(app.aeshdl,foreground_color_index); // black
     }
   
-  v_bar(app.aeshdl,pxyarray);
-  
-  if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_BLOCK_ERASE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index,0,0,0);
-  
+  v_bar(app.aeshdl,pxyarray);  
 }
 
 /**
  * screen_dot_draw(Coord) - Plot a mode 0 pixel
  */
-void screen_dot_draw(padPt* Coord, bool queue)
+void screen_dot_draw(padPt* Coord)
 {
   short pxyarray[4];
 
@@ -205,15 +198,12 @@ void screen_dot_draw(padPt* Coord, bool queue)
 
   vsl_type(app.aeshdl,1); // Solid
   v_pline(app.aeshdl,2,pxyarray);
-
-  if (queue==true)
-    screen_queue_append(screen_queue,SCREEN_QUEUE_DOT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
 }
 
 /**
  * screen_line_draw(Coord1, Coord2) - Draw a mode 1 line
  */
-void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
+void screen_line_draw(padPt* Coord1, padPt* Coord2)
 {
   short pxyarray[4];
 
@@ -235,11 +225,8 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2, bool queue)
 
   vsl_type(app.aeshdl,1); // Solid
   v_pline(app.aeshdl,2,pxyarray);
-  if (queue==true)
-    {
-      screen_queue_append(screen_queue,SCREEN_QUEUE_LINE,Coord1->x,Coord1->y,Coord2->x,Coord2->y,NULL,0,background_color_index,foreground_color_index,0,0,0);
-    }
 }
+
 /**
  * screen_char_bold_shift() - enlarge character for bold mode
  */
@@ -267,7 +254,7 @@ void screen_char_bold_shift(unsigned short* bold_char, unsigned short* ch)
 /**
  * screen_char_draw(Coord, ch, count) - Output buffer from ch* of length count as PLATO characters
  */
-void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool queue)
+void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 {
   char* chptr;
   unsigned char a;
@@ -282,9 +269,6 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
   destMFDB.fd_addr=0; // We blit to the screen.
   
   // Create copy of character buffer, if queuing up.
-  if (queue==TRUE)
-    chptr=screen_strndup(ch,count);
-  
   switch(CurMem)
     {
     case M0:
@@ -382,11 +366,6 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count, bool
 	  pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
 	}
     }
-  if (queue==true)
-    {
-      screen_queue_append(screen_queue,SCREEN_QUEUE_CHAR,Coord->x,Coord->y,0,0,chptr,count,background_color_index,foreground_color_index,0,0,0);
-    }
-  
 }
 
 /**
@@ -396,7 +375,7 @@ void screen_tty_char(padByte theChar)
 {
   short pxyarray[4];
   if ((theChar >= 0x20) && (theChar < 0x7F)) {
-    screen_char_draw(&TTYLoc, &theChar, 1, true);
+    screen_char_draw(&TTYLoc, &theChar, 1);
     TTYLoc.x += CharWide;
   }
   else if ((theChar == 0x0b)) /* Vertical Tab */
@@ -441,67 +420,10 @@ void screen_done(void)
 }
 
 /**
- * Do next redraw
- */
-void screen_next_redraw(DrawElement* element)
-{
-  padPt coord1, coord2;
-
-  CurMode=element->CurMode;
-  CurMem=element->CurMem;
-  
-  switch(element->mode)
-    {
-    case SCREEN_QUEUE_DOT:
-      coord1.x = element->x1;
-      coord1.y = element->y1;
-      screen_dot_draw(&coord1,false);
-      break;
-    case SCREEN_QUEUE_LINE:
-      coord1.x = element->x1;
-      coord1.y = element->y1;
-      coord2.x = element->x2;
-      coord2.y = element->y2;
-      screen_line_draw(&coord1,&coord2,false);
-      break;
-    case SCREEN_QUEUE_CHAR:
-      coord1.x = element->x1;
-      coord1.y = element->y1;
-      screen_char_draw(&coord1,element->ch,element->chlen,false);
-      break;
-    case SCREEN_QUEUE_BLOCK_ERASE:
-      coord1.x = element->x1;
-      coord1.y = element->y1;
-      coord2.x = element->x2;
-      coord2.y = element->y2;
-      screen_block_draw(&coord1,&coord2,false);
-      break;
-    case SCREEN_QUEUE_PAINT:
-      coord1.x=element->x1;
-      coord2.y=element->y1;
-      vsf_color(app.aeshdl,element->foreground_color_index);
-      vsl_color(app.aeshdl,element->foreground_color_index);
-      screen_paint(&coord1,false);
-      break;
-   
-    }
-}
-
-/**
  * screen_redraw()
  */
 void screen_redraw(void)
 {
-  DrawElement* redraw_cursor = screen_queue;
-
-  screen_remap_palette();
-  
-  while(redraw_cursor != NULL)
-    {
-      screen_next_redraw(redraw_cursor);
-      redraw_cursor=redraw_cursor->next;
-    }
-
 }
 
 /**
@@ -615,24 +537,16 @@ short screen_color(padRGB* theColor)
 /**
  * paint
  */
-void screen_paint(padPt* Coord, bool queue)
+void screen_paint(padPt* Coord)
 {
   if (appl_is_mono==1)
     {
       vsf_color(app.aeshdl,foreground_color_index);
       vsf_interior(app.aeshdl,1); // Solid interior
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),-1);
-      if (queue==true)
-	{
-	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
-	}
     }
   else
     {
-      if (queue==true)
-	{
-	  screen_queue_append(screen_queue,SCREEN_QUEUE_PAINT,Coord->x,Coord->y,0,0,NULL,0,background_color_index,foreground_color_index,0,0,0);
-	}
       vsf_color(app.aeshdl,foreground_color_index);
       vsf_interior(app.aeshdl,1); // Solid interior
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),background_color_index);

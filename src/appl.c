@@ -5,13 +5,11 @@
 #include "appl.h"
 #include "protocol.h"
 #include "screen.h"
-#include "screen_queue.h"
 #include "terminal.h"
 #include <osbind.h>
 
 extern unsigned char splash[];
 extern short splash_size;
-extern DrawElement* screen_queue;
 
 extern unsigned char FONT_SIZE_X;
 extern unsigned char FONT_SIZE_Y;
@@ -121,14 +119,14 @@ void applinit(void)
   if (full_screen==TRUE)
     win=WindCreate(0,app.x,app.y,app.w,app.h);
   else
-    win = WindCreate( NAME|MOVER|CLOSER, app.x, app.y, app.w, app.h);
+    win = WindCreate( NAME|MOVER|CLOSER, app.x+10, app.y+10, app.x+512+10, app.y+512+10);
 
-  wind_calc(WC_BORDER,NAME|MOVER|CLOSER,app.x,app.y,512,512,&cx,&cy,&cw,&ch);
+  /* wind_calc(WC_BORDER,NAME|MOVER|CLOSER,app.x,app.y,512,512,&cx,&cy,&cw,&ch); */
   
   if (full_screen==TRUE)
     WindOpen( win, app.x, app.y, app.x+app.w, app.y+app.h);
   else
-    WindOpen( win, cx, cy, cw, ch);
+    WindOpen( win, app.x+10,app.y+10,app.x+512+10,app.y+512+10);
 
   WindSetStr( win, WF_NAME, "PLATOTerm ST");
   
