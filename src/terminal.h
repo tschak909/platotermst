@@ -12,6 +12,8 @@
 
 #include "protocol.h"
 
+#define TERMINAL_BUFFER_SIZE 16384
+
 /**
  * terminal_init()
  * Initialize terminal state
@@ -128,5 +130,15 @@ padByte terminal_ext_in(void);
  * Not implemented.
  */
 void terminal_ext_out(padByte value);
+
+/**
+ * terminal_buffer_clear - Clear the terminal buffer
+ */
+void terminal_buffer_clear(void);
+
+/**
+ * terminal_done - deallocate terminal buffer
+ */
+void terminal_done(void);
 
 #endif

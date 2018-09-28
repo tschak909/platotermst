@@ -23,11 +23,13 @@ int main(void)
   if (appl_init_successful==true)
     {
       applmain();
+      terminal_done();
       appldone();
       return 0;
     }
   else
     {
+      terminal_done();
       appldone();
       return -1;
     }

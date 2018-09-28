@@ -3,6 +3,7 @@
 #include "math.h"
 #include "appl.h"
 #include "screen.h"
+#include "terminal.h"
 #include <windom.h>
 #include <gem.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 #include <bits/string2.h>
 #include <math.h>
 
+extern WINDOW* win;
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
 padPt TTYLoc;
@@ -34,6 +36,9 @@ extern unsigned short full_screen;
 extern unsigned short window_x;
 extern unsigned short window_y;
 extern short appl_is_mono;
+
+extern padByte terminal_buffer[TERMINAL_BUFFER_SIZE];
+extern short terminal_buffer_size;
 
 static char tmptxt[80];
 
@@ -59,6 +64,11 @@ char* screen_strndup(unsigned char* ch, unsigned char count)
  */
 short screen_x(short x)
 {
+  short xw,yw,ww,hw;
+  WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
+  window_x=xw;
+  window_y=yw;
+
   if (full_screen==true)
     return scalex[x];
   else
@@ -122,11 +132,13 @@ void screen_beep(void)
 void screen_remap_palette(void)
 {
   int i=0;
+  wind_update(BEG_UPDATE);
   for (i=0;i<16;++i)
     {
       short current_color[3]={palette[i].red*VDI_COLOR_SCALE,palette[i].green*VDI_COLOR_SCALE,palette[i].blue*VDI_COLOR_SCALE};
       vs_color(app.aeshdl,i,current_color);
     }
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -134,7 +146,9 @@ void screen_remap_palette(void)
  */
 void screen_clear(void)
 {
+  wind_update(BEG_UPDATE);
   appl_clear_screen();
+  terminal_buffer_clear();
   memset(palette,-1,sizeof(palette));
   highestColorIndex=0;
   palette[0]=background_rgb;
@@ -147,6 +161,7 @@ void screen_clear(void)
       ++highestColorIndex;
     }
   screen_remap_palette();
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -160,6 +175,8 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
   pxyarray[2]=screen_x(Coord2->x);
   pxyarray[3]=screen_y(Coord2->y);
 
+  wind_update(BEG_UPDATE);
+  
   // initial naive implementation, draw a bunch of horizontal lines the size of bounding box.
 
   if (CurMode==ModeErase || CurMode==ModeInverse)
@@ -171,7 +188,9 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
       vsf_color(app.aeshdl,foreground_color_index); // black
     }
   
-  v_bar(app.aeshdl,pxyarray);  
+  v_bar(app.aeshdl,pxyarray);
+
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -180,6 +199,8 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
 void screen_dot_draw(padPt* Coord)
 {
   short pxyarray[4];
+
+  wind_update(BEG_UPDATE);
 
     switch(CurMode)
     {
@@ -198,6 +219,8 @@ void screen_dot_draw(padPt* Coord)
 
   vsl_type(app.aeshdl,1); // Solid
   v_pline(app.aeshdl,2,pxyarray);
+
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -207,6 +230,8 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
 {
   short pxyarray[4];
 
+  wind_update(BEG_UPDATE);
+  
   switch(CurMode)
     {
     case ModeWrite:
@@ -225,6 +250,7 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
 
   vsl_type(app.aeshdl,1); // Solid
   v_pline(app.aeshdl,2,pxyarray);
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -267,6 +293,8 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   short current_mode=1;  // Default to Rewrite
   short bold_char[32];   // Bold character buffer.
   destMFDB.fd_addr=0; // We blit to the screen.
+
+  wind_update(BEG_UPDATE);
   
   // Create copy of character buffer, if queuing up.
   switch(CurMem)
@@ -366,6 +394,9 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 	  pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
 	}
     }
+
+  wind_update(END_UPDATE);
+  
 }
 
 /**
@@ -424,6 +455,7 @@ void screen_done(void)
  */
 void screen_redraw(void)
 {
+  ShowPLATO(terminal_buffer,terminal_buffer_size,padT);
 }
 
 /**
@@ -539,6 +571,7 @@ short screen_color(padRGB* theColor)
  */
 void screen_paint(padPt* Coord)
 {
+  wind_update(BEG_UPDATE);
   if (appl_is_mono==1)
     {
       vsf_color(app.aeshdl,foreground_color_index);
@@ -551,4 +584,5 @@ void screen_paint(padPt* Coord)
       vsf_interior(app.aeshdl,1); // Solid interior
       v_contourfill(app.aeshdl,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
     }
+  wind_update(END_UPDATE);
 }

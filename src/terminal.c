@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include "terminal.h"
 #include "screen.h"
 #include "appl.h"
@@ -25,6 +26,9 @@
 #define ASC_ZPCKEYS     0x02
 #define ASC_ZKERMIT     0x04
 #define ASC_ZWINDOW     0x08
+
+padByte terminal_buffer[TERMINAL_BUFFER_SIZE];
+short terminal_buffer_size=0;
 
 /**
  * protocol.c externals
@@ -60,6 +64,7 @@ extern int16_t appl_atari_tt_med_res;   // Are we in Atari TT Med Res (640x480?)
  */
 void terminal_init(void)
 {
+  terminal_buffer_clear();
   terminal_set_tty();
 }
 
@@ -68,7 +73,7 @@ void terminal_init(void)
  */
 void terminal_show_greeting(void)
 {
-  ShowPLATO((padByte *)splash,sizeof(splash));
+  ShowPLATO((padByte *)splash,sizeof(splash),padF);
 }
 
 /**
@@ -450,4 +455,21 @@ void terminal_char_load_fullres(padWord charnum, charData theChar)
 
   // and...that's it, really. :)
   
+}
+
+/**
+ * terminal_buffer_clear - Clear the terminal buffer
+ */
+void terminal_buffer_clear(void)
+{
+  terminal_buffer_size=0;
+  memset(terminal_buffer,0,TERMINAL_BUFFER_SIZE);
+}
+
+/**
+ * terminal_done - deallocate terminal buffer
+ */
+void terminal_done(void)
+{
+  terminal_buffer_clear();
 }

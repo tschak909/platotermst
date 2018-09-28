@@ -56,8 +56,8 @@ static void appl_redraw(WINDOW* win,short wbuff[8])
 
   wind_update(BEG_UPDATE);
   appl_clear_screen();
-  screen_redraw();
   wind_update(END_UPDATE);
+  screen_redraw();
 }
 
 /**
@@ -240,7 +240,9 @@ void appl_clear_screen(void)
     }
   else // Windowed.
     {
+      wind_update(BEG_UPDATE);
       WindClear(win);
+      wind_update(END_UPDATE);
     }
 }
 
