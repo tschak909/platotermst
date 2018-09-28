@@ -44,20 +44,43 @@ int16_t appl_is_mono=FALSE;            // Are we in mono?
 WINDOW* win;
 int16_t window_x, window_y;            // Window coordinates
 int16_t appl_init_successful=FALSE;    // Application successfully initialized.
+int16_t on_top=FALSE;                  // Application on top?
+
+static void appl_moved(WINDOW* win, short wbuff[8])
+{
+  short xw, yw, ww, hw;
+  WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
+  window_x=xw;
+  window_y=yw;
+}
+
+static void appl_ontop(WINDOW* win, short wbuff[8])
+{
+  WindSet(win,WF_TOP,0,0,0,0);
+  screen_remap_palette();
+  appl_clear_screen();
+  screen_redraw();
+  on_top=TRUE;
+}
+
+static void appl_offtop(WINDOW* win, short wbuff[8])
+{
+  WindSet(win,WF_BOTTOM,0,0,0,0);
+  on_top=FALSE;
+}
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
   short xw, yw, ww, hw; // Window dimensions
   short xy[8];
 
-  WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
-  window_x=xw;
-  window_y=yw;
-
-  wind_update(BEG_UPDATE);
-  appl_clear_screen();
-  wind_update(END_UPDATE);
-  screen_redraw();
+  if (on_top==TRUE)
+    {
+      wind_update(BEG_UPDATE);
+      appl_clear_screen();
+      wind_update(END_UPDATE);
+      screen_redraw();
+    }
 }
 
 /**
@@ -138,8 +161,12 @@ void applinit(void)
 
   terminal_init();
   terminal_initial_position();
-  
+
+  // Attach to window manager messages
+  EvntAttach(win,WM_TOPPED,appl_ontop);
+  EvntAttach(win,WM_UNTOPPED,appl_offtop);
   EvntAttach(win,WM_REDRAW,appl_redraw);
+  EvntAttach(win,WM_MOVED,appl_moved);
   EvntAttach(NULL, AP_TERM, appl_term);
   EvntAttach(win,WM_XTIMER,appl_timer);
   EvntAttach(win,WM_XKEYBD,appl_kybd);
@@ -168,10 +195,12 @@ static void __CDECL appl_quit_no( WINDOW *win, int obj, int mode, void *data) {
 static void appl_quit_form(WINDOW *win, int index, int mode, void *data)
 {
   OBJECT *quitform=appl_get_tree(FORM_QUIT);
+  int res;
+  MenuTnormal(NULL,index,1);
   win=FormWindBegin(quitform, "Quit PLATOTerm");
   ObjcAttachFormFunc(win,BUTTON_QUIT_YES,appl_quit_yes,NULL);
   ObjcAttachFormFunc(win,BUTTON_QUIT_NO,appl_quit_no,NULL);
-  FormWindDo(MU_MESAG);
+  res=FormWindDo(MU_MESAG);
   FormWindEnd();
 }
 
@@ -180,6 +209,7 @@ static void appl_quit_form(WINDOW *win, int index, int mode, void *data)
  */
 static void appl_about_close(WINDOW *win, int index, int mode, void *data)
 {
+  MenuTnormal(NULL,index,1);
   ObjcChange(mode, win, index, 0, TRUE);
   ApplWrite(_AESapid, WM_DESTROY, win->handle, 0,0,0,0);
 }
@@ -190,6 +220,7 @@ static void appl_about_close(WINDOW *win, int index, int mode, void *data)
 static void appl_about(WINDOW *null, int index, int title, void *data)
 {
   OBJECT *aboutbox = appl_get_tree(FORM_ABOUT);
+  MenuTnormal(NULL,index,1);
   FormWindBegin(aboutbox, "About PLATOTerm ST");
   FormWindDo(MU_MESAG);
   FormWindEnd();
