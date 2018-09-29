@@ -88,7 +88,7 @@ void GoCoord(void);
 void GoColor(void);
 void GoPaint(void);
 void DataChar(void);
-void ShowPLATO(padByte* buff, unsigned short count, padBool replay);
+void ShowPLATO(padByte* buff, unsigned short count);
 void SetFast(void);
 
 #endif

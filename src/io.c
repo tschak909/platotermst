@@ -34,7 +34,7 @@ void io_main(void)
   if (Bconstat(1)==-1)
     {
       ch=(unsigned char)Bconin(1)&0xFF;
-      ShowPLATO(&ch,1,padF);
+      ShowPLATO(&ch,1);
     }
 }
 

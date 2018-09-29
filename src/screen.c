@@ -455,8 +455,6 @@ void screen_done(void)
  */
 void screen_redraw(void)
 {
-  screen_remap_palette();
-  ShowPLATO(terminal_buffer,terminal_buffer_size,padT);
 }
 
 /**

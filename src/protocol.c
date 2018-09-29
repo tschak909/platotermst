@@ -75,9 +75,6 @@ extern void screen_clear(void);
 extern void terminal_set_tty(void);
 extern void terminal_set_plato(void);
 
-extern padByte terminal_buffer[TERMINAL_BUFFER_SIZE];
-extern short terminal_buffer_size;
-
 #ifdef PROTOCOL_DEBUG
 extern void log(const char* format, ...);
 #endif
@@ -779,18 +776,12 @@ DataChar (void)
 }
 
 void
-ShowPLATO (padByte *buff, unsigned short count,padBool replay)
+ShowPLATO (padByte *buff, unsigned short count)
 {
   while (count--)
     {
       theChar = *buff++;
       // Save in terminal buffer.
-      if (replay==padF)
-	{
-	  terminal_buffer[terminal_buffer_size++]=theChar;
-	  if (terminal_buffer_size>TERMINAL_BUFFER_SIZE)
-	    terminal_buffer_clear();
-	}
       if (lastChar==0xFF && theChar==0xFF)
 	{
 	  // Drop this character, it is an escaped TELNET IAC.

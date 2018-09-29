@@ -210,21 +210,24 @@ static void appl_quit_form(WINDOW *win, int index, int mode, void *data)
 static void appl_about_close(WINDOW *win, int index, int mode, void *data)
 {
   MenuTnormal(NULL,index,1);
-  ObjcChange(mode, win, index, 0, TRUE);
-  ApplWrite(_AESapid, WM_DESTROY, win->handle, 0,0,0,0);
+  ObjcChange(mode, win, index, 0, FALSE);
+  ApplWrite(_AESapid, WM_CLOSED, win->handle, 0,0,0,0);
+  screen_remap_palette();
+  screen_clear();
+  screen_redraw();
 }
 
 /**
  * show app about menu
  */
-static void appl_about(WINDOW *null, int index, int title, void *data)
+static void appl_about(WINDOW *win, int index, int title, void *data)
 {
   OBJECT *aboutbox = appl_get_tree(FORM_ABOUT);
   MenuTnormal(NULL,index,1);
-  FormWindBegin(aboutbox, "About PLATOTerm ST");
+  win=FormWindBegin(aboutbox, "About PLATOTerm ST");
+  ObjcAttachFormFunc(win,BUTTON_ABOUT_OK,appl_about_close,NULL);
   FormWindDo(MU_MESAG);
   FormWindEnd();
-  /* ObjcChange(OC_FORM,win,index,0,TRUE); */
 }
 
 /**

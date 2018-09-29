@@ -73,7 +73,7 @@ void terminal_init(void)
  */
 void terminal_show_greeting(void)
 {
-  ShowPLATO((padByte *)splash,sizeof(splash),padF);
+  ShowPLATO((padByte *)splash,sizeof(splash));
 }
 
 /**
