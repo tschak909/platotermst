@@ -37,9 +37,6 @@ extern unsigned short window_x;
 extern unsigned short window_y;
 extern short appl_is_mono;
 
-extern padByte terminal_buffer[TERMINAL_BUFFER_SIZE];
-extern short terminal_buffer_size;
-
 static char tmptxt[80];
 
 #define VDI_COLOR_SCALE 3.91 
@@ -455,6 +452,8 @@ void screen_done(void)
  */
 void screen_redraw(void)
 {
+  screen_clear();
+  screen_remap_palette();
 }
 
 /**

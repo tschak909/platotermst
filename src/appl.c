@@ -33,18 +33,19 @@ extern unsigned short scaley_lores[];
 extern unsigned short scalex_fullres[];
 extern unsigned short scaley_fullres[];
 
-int16_t magic_os=FALSE;                // Are we running under MagiC?
-int16_t mint_os=FALSE;                 // Are we running under MINT?
-int16_t full_screen=FALSE;             // Are we running full screen? 
-int16_t appl_atari_hi_res=FALSE;       // Are we in Atari Hi Res (640x400?)
-int16_t appl_atari_med_res=FALSE;      // Are we in Atari Med Res (640x200?)
-int16_t appl_atari_tt_med_res=FALSE;   // Are we in Atari TT Med Res (640x480?)
-int16_t appl_atari_low_res=FALSE;      // Are we in Atari Low Res (640x200?)
-int16_t appl_is_mono=FALSE;            // Are we in mono? 
+int16_t magic_os=FALSE;                  // Are we running under MagiC?
+int16_t mint_os=FALSE;                   // Are we running under MINT?
+int16_t full_screen=FALSE;               // Are we running full screen? 
+int16_t appl_atari_hi_res=FALSE;         // Are we in Atari Hi Res (640x400?)
+int16_t appl_atari_med_res=FALSE;        // Are we in Atari Med Res (640x200?)
+int16_t appl_atari_tt_med_res=FALSE;     // Are we in Atari TT Med Res (640x480?)
+int16_t appl_atari_low_res=FALSE;        // Are we in Atari Low Res (640x200?)
+int16_t appl_is_mono=FALSE;              // Are we in mono? 
 WINDOW* win;
-int16_t window_x, window_y;            // Window coordinates
-int16_t appl_init_successful=FALSE;    // Application successfully initialized.
-int16_t on_top=FALSE;                  // Application on top?
+int16_t window_x, window_y;              // Window coordinates
+int16_t appl_init_successful=FALSE;      // Application successfully initialized.
+int16_t on_top=FALSE;                    // Application on top?
+int16_t appl_screen_visible=false;       // Is terminal visible?
 
 static void appl_moved(WINDOW* win, short wbuff[8])
 {
@@ -77,9 +78,7 @@ static void appl_redraw(WINDOW* win,short wbuff[8])
   if (on_top==TRUE)
     {
       wind_update(BEG_UPDATE);
-      appl_clear_screen();
       wind_update(END_UPDATE);
-      screen_redraw();
     }
 }
 
@@ -110,6 +109,35 @@ static void appl_timer(WINDOW *win, short buff[8])
   io_main();
 }
 
+void appl_update_backing_store()
+{
+
+}
+
+/**
+ * Attempt to create backing store
+ */
+void appl_create_backing_store(void)
+{
+  size_t backing_store_size;
+  appl_backing_store.fd_w=win->w_max;
+  appl_backing_store.fd_h=win->h_max;
+  appl_backing_store.fd_wdwidth=(win->w_max>>4);
+  appl_backing_store.fd_stand=0; // Device specific
+  appl_backing_store.fd_nplanes=app.nplanes;
+  appl_backing_store.fd_r1=0;
+  appl_backing_store.fd_r2=0;
+  appl_backing_store.fd_r3=0;
+
+  // Attempt to allocate memory for backing store. 
+  backing_store_size=(((win->w_max*win->h_max)*app.nplanes)>>4);
+  appl_backing_store.fd_addr=malloc(backing_store_size);
+  if (appl_backing_store.fd_addr==NULL)
+    appl_backing_store_active=false;
+  else
+    appl_backing_store_active=true;
+}
+
 /**
  * Initialize the application context
  */
@@ -127,9 +155,6 @@ void applinit(void)
       return;
     }
 
-  // Install menubar
-  MenuBar(appl_get_tree(MAINMENU),1);
-
   /* Register application name in menu if possible */
   if( _AESnumapps == -1)
     menu_register( _AESapid, "  PLATOTerm ");
@@ -140,17 +165,18 @@ void applinit(void)
     
   // Create the window.
   if (full_screen==TRUE)
-    win=WindCreate(0,app.x,app.y,app.w,app.h);
+    {
+      win=WindCreate(0,app.x,app.y,app.w,app.h);
+      WindOpen( win, app.x, app.y, app.x+app.w, app.y+app.h);
+    }
   else
-    win = WindCreate( NAME|MOVER|CLOSER, app.x+10, app.y+10, app.x+512+10, app.y+512+10);
+    {
+      win = WindCreate( NAME|MOVER|CLOSER, app.x+10, app.y+10, app.x+512+10, app.y+512+10);
+      WindOpen( win, app.x+10,app.y+10,app.x+512+10,app.y+512+10);
+    }
 
-  /* wind_calc(WC_BORDER,NAME|MOVER|CLOSER,app.x,app.y,512,512,&cx,&cy,&cw,&ch); */
+  appl_show_menu();
   
-  if (full_screen==TRUE)
-    WindOpen( win, app.x, app.y, app.x+app.w, app.y+app.h);
-  else
-    WindOpen( win, app.x+10,app.y+10,app.x+512+10,app.y+512+10);
-
   WindSetStr( win, WF_NAME, "PLATOTerm ST");
   
   WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
@@ -171,8 +197,9 @@ void applinit(void)
   EvntAttach(win,WM_XTIMER,appl_timer);
   EvntAttach(win,WM_XKEYBD,appl_kybd);
 
-  ObjcAttachMenuFunc(NULL, MENU_ABOUT, appl_about, NULL);
-  ObjcAttachMenuFunc(NULL,MENU_QUIT,appl_quit_form,NULL);
+  ObjcAttachMenuFunc(NULL, MENU_ABOUT, appl_menu_about, NULL);
+  ObjcAttachMenuFunc(NULL, MENU_BAUD_RATE, appl_menu_baud, NULL);
+  ObjcAttachMenuFunc(NULL,MENU_QUIT,appl_menu_quit,NULL);
   
   appl_init_successful=true;
   
@@ -192,15 +219,19 @@ static void __CDECL appl_quit_no( WINDOW *win, int obj, int mode, void *data) {
 /**
  * show quit form
  */
-static void appl_quit_form(WINDOW *win, int index, int mode, void *data)
+static void appl_menu_quit(WINDOW *win, int index, int mode, void *data)
+{
+  MenuTnormal(NULL,index,1);
+  appl_form_quit();
+}
+
+static void appl_form_quit(void)
 {
   OBJECT *quitform=appl_get_tree(FORM_QUIT);
-  int res;
-  MenuTnormal(NULL,index,1);
   win=FormWindBegin(quitform, "Quit PLATOTerm");
   ObjcAttachFormFunc(win,BUTTON_QUIT_YES,appl_quit_yes,NULL);
   ObjcAttachFormFunc(win,BUTTON_QUIT_NO,appl_quit_no,NULL);
-  res=FormWindDo(MU_MESAG);
+  FormWindDo(MU_MESAG);
   FormWindEnd();
 }
 
@@ -220,12 +251,24 @@ static void appl_about_close(WINDOW *win, int index, int mode, void *data)
 /**
  * show app about menu
  */
-static void appl_about(WINDOW *win, int index, int title, void *data)
+static void appl_menu_about(WINDOW *win, int index, int title, void *data)
 {
   OBJECT *aboutbox = appl_get_tree(FORM_ABOUT);
   MenuTnormal(NULL,index,1);
   win=FormWindBegin(aboutbox, "About PLATOTerm ST");
   ObjcAttachFormFunc(win,BUTTON_ABOUT_OK,appl_about_close,NULL);
+  FormWindDo(MU_MESAG);
+  FormWindEnd();
+}
+
+/**
+ * show baud rate form
+ */
+static void appl_menu_baud(WINDOW *win, int index, int title, void *data)
+{
+  OBJECT *aboutbox = appl_get_tree(FORM_BAUD);
+  MenuTnormal(NULL,index,1);
+  win=FormWindBegin(aboutbox, "Set Baud Rate");
   FormWindDo(MU_MESAG);
   FormWindEnd();
 }
@@ -242,6 +285,18 @@ void applmain(void)
 
 }
 
+void appl_show_menu(void)
+{
+  // Install menubar
+  MenuBar(appl_get_tree(MAINMENU),1);
+}
+
+void appl_hide_menu(void)
+{
+  // Install menubar
+  MenuBar(appl_get_tree(MAINMENU),0);
+}
+
 /**
  * Restore from full screen
  */
@@ -249,6 +304,7 @@ void appl_restore_screen( void)
 {
   form_dial( FMD_FINISH, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
   v_show_c( app.aeshdl, 0);
+  appl_screen_visible=false;
 }
 
 /**
@@ -270,7 +326,6 @@ void appl_clear_screen(void)
       xy[2] = app.work_out[0];
       xy[3] = app.work_out[1];
       vr_recfl(app.aeshdl,xy);
-      menu_bar( app.menu, 0); // Disable menu bar in fullscreen.	
     }
   else // Windowed.
     {
@@ -286,6 +341,7 @@ void appl_clear_screen(void)
 void appl_fullscreen(void)
 {
   appl_clear_screen();
+  appl_screen_visible=true;
 }
 
 /**
@@ -365,6 +421,7 @@ static void __CDECL appl_term( WINDOW *win, short buff[8]) {
 		ApplWrite( _AESapid, WM_DESTROY, wglb.first->handle,0,0,0,0); 
 		EvntWindom( MU_MESAG);
 	}
+	appl_hide_menu(); // Remove menu bar.
 	RsrcXtype( 0, NULL, 0);
 	RsrcFree();
 	ApplExit();
