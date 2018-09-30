@@ -45,6 +45,10 @@ void io_main(void);
  */
 void io_recv_serial(void);
 
+/**
+ * Hang up
+ */
+void io_hang_up(void);
 
 /**
  * io_done() - Called to close I/O

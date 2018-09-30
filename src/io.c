@@ -18,6 +18,7 @@ void io_init(void)
 void io_configure(void)
 {
   Rsconf(config.baud,2,-1,-1,-1,-1);
+  Ongibit(0x10);  // raise DTR.
 } 
 
 /**
@@ -50,6 +51,27 @@ void io_recv_serial(void)
 {  
 }
 
+/**
+ * Hang up
+ */
+void io_hang_up(void)
+{
+  Bconout(2,0x07);
+  Offgibit(0x10); // Lower DTR...
+  io_send_byte(0x2B);
+  io_send_byte(0x2B);
+  io_send_byte(0x2B);
+  usleep(3000000);  // for a moment.
+  io_send_byte('A');
+  io_send_byte('T');
+  io_send_byte('H');
+  io_send_byte(0x0D);
+  io_send_byte(0x0A);
+  Ongibit(0x10);  // and bring it back up.
+}
+
+
 void io_done()
 {
+  Offgibit(0x10); // Lower DTR.
 }

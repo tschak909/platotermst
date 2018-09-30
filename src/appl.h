@@ -9,7 +9,8 @@
 
 #define MENU_ABOUT 7
 #define MENU_BAUD_RATE 16
-#define MENU_QUIT 17
+#define MENU_HANG_UP 17
+#define MENU_QUIT 18
 
 #define BUTTON_ABOUT_OK 1
 
@@ -71,6 +72,11 @@ short appl_get_fullscreen(void);
 static void appl_menu_quit(WINDOW *win, int index, int mode, void *data);
 static void appl_form_quit(void);
 
+/**
+ * show hang-up alert
+ */
+static void appl_menu_hang_up(WINDOW *win, int index, int mode, void *data);
+
 void appl_show_menu(void);
 void appl_hide_menu(void);
 
@@ -87,7 +93,7 @@ static void appl_menu_about(WINDOW *null, int index, int title, void *data);
 /**
  * Show baud rate form
  */
-void appl_form_baud(WINDOW* win);
+void appl_form_baud(void);
 
 /**
  * show app baud form
@@ -103,6 +109,11 @@ static void __CDECL appl_term( WINDOW *win, short buff[8]);
  * Show ready prompt
  */
 void appl_show_ready(void);
+
+/**
+ * Alert for hang-up and optionally, hang-up.
+ */
+void appl_hang_up(void);
 
 /**
  * Finish application

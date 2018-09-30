@@ -167,6 +167,7 @@ void applinit(void)
 
   ObjcAttachMenuFunc(NULL, MENU_ABOUT, appl_menu_about, NULL);
   ObjcAttachMenuFunc(NULL, MENU_BAUD_RATE, appl_menu_baud, NULL);
+  ObjcAttachMenuFunc(NULL, MENU_HANG_UP, appl_menu_hang_up, NULL);
   ObjcAttachMenuFunc(NULL,MENU_QUIT,appl_menu_quit,NULL);
   
   appl_init_successful=true;
@@ -192,6 +193,16 @@ static void appl_menu_quit(WINDOW *win, int index, int mode, void *data)
   MenuTnormal(NULL,index,1);
   appl_form_quit();
 }
+
+/**
+ * show hang-up alert
+ */
+static void appl_menu_hang_up(WINDOW *win, int index, int mode, void *data)
+{
+  MenuTnormal(NULL,index,1);
+  appl_hang_up();
+}
+
 
 static void appl_form_quit(void)
 {
@@ -229,104 +240,77 @@ static void appl_menu_about(WINDOW *win, int index, int title, void *data)
   FormWindEnd();
 }
 
-static void appl_form_baud_cancel(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set_old();
-  screen_remap_palette();
-}
-
-static void appl_form_baud_ok(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set_new();
-  config_save();
-  screen_remap_palette();
-  io_configure();
-}
-
-static void appl_form_baud_300(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set(9);
-}
-
-static void appl_form_baud_1200(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set(7);
-}
-
-static void appl_form_baud_2400(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set(4);
-}
-
-static void appl_form_baud_4800(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set(2);
-}
-
-static void appl_form_baud_9600(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set(1);
-}
-
-static void appl_form_baud_19200(WINDOW* win, int index, int mode, void *data)
-{
-  config_baud_set(0);
-}
-
-
 /**
  * Show baud rate form
  */
-void appl_form_baud(WINDOW* win)
+void appl_form_baud(void)
 {
-  OBJECT *baud = appl_get_tree(FORM_BAUD);  
-  win=FormWindBegin(baud, "Set Baud Rate");
-  ObjcAttachFormFunc( win, BUTTON_BAUD_CANCEL, appl_form_baud_cancel, NULL);
-  ObjcAttachFormFunc( win, BUTTON_BAUD_OK, appl_form_baud_ok, NULL);
-  ObjcAttachFormFunc( win, BUTTON_BAUD_300, appl_form_baud_300, NULL);
-  ObjcAttachFormFunc( win, BUTTON_BAUD_1200, appl_form_baud_1200, NULL);
-  ObjcAttachFormFunc( win, BUTTON_BAUD_2400, appl_form_baud_2400, NULL);
-  ObjcAttachFormFunc( win, BUTTON_BAUD_4800, appl_form_baud_4800, NULL);
-  ObjcAttachFormFunc( win, BUTTON_BAUD_9600, appl_form_baud_9600, NULL);
-  ObjcAttachFormFunc( win, BUTTON_BAUD_19200, appl_form_baud_19200, NULL);
+  OBJECT* baud = appl_get_tree(FORM_BAUD);
+  WINDOW* localwin;
+  int res;
+  int new_baud;
+  
+  localwin=FormWindBegin(baud, "Set Baud Rate");
+  ObjcAttachVar(OC_FORM,localwin,BUTTON_BAUD_300,&new_baud,9);
+  ObjcAttachVar(OC_FORM,localwin,BUTTON_BAUD_1200,&new_baud,7);
+  ObjcAttachVar(OC_FORM,localwin,BUTTON_BAUD_2400,&new_baud,4);
+  ObjcAttachVar(OC_FORM,localwin,BUTTON_BAUD_4800,&new_baud,2);
+  ObjcAttachVar(OC_FORM,localwin,BUTTON_BAUD_9600,&new_baud,1);
+  ObjcAttachVar(OC_FORM,localwin,BUTTON_BAUD_19200,&new_baud,0);
 
   // Clear radio button widgets
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_OK, 0, FALSE);
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_CANCEL, 0, FALSE);
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_19200, 0, FALSE);
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_9600, 0, FALSE);
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_4800, 0, FALSE);
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_2400, 0, FALSE);
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_1200, 0, FALSE);
-  ObjcChange( OC_FORM, win, BUTTON_BAUD_300, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_OK, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_CANCEL, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_19200, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_9600, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_4800, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_2400, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_1200, 0, FALSE);
+  ObjcChange( OC_FORM, localwin, BUTTON_BAUD_300, 0, FALSE);
 
   // And set the appropriate one.
   switch(config.baud)
     {
     case 0: // 19200
-      ObjcChange( OC_FORM, win, BUTTON_BAUD_19200, 1, FALSE);
+      ObjcChange( OC_FORM, localwin, BUTTON_BAUD_19200, 1, FALSE);
       break;
     case 1: // 9600
-      ObjcChange( OC_FORM, win, BUTTON_BAUD_9600, 1, FALSE);
+      ObjcChange( OC_FORM, localwin, BUTTON_BAUD_9600, 1, FALSE);
       break;
     case 2: // 4800
-      ObjcChange( OC_FORM, win, BUTTON_BAUD_4800, 1, FALSE);
+      ObjcChange( OC_FORM, localwin, BUTTON_BAUD_4800, 1, FALSE);
       break;
     case 4: // 2400
-      ObjcChange( OC_FORM, win, BUTTON_BAUD_2400, 1, FALSE);
+      ObjcChange( OC_FORM, localwin, BUTTON_BAUD_2400, 1, FALSE);
       break;
     case 7: // 1200
-      ObjcChange( OC_FORM, win, BUTTON_BAUD_1200, 1, FALSE);
+      ObjcChange( OC_FORM, localwin, BUTTON_BAUD_1200, 1, FALSE);
       break;
     case 9: // 300
-      ObjcChange( OC_FORM, win, BUTTON_BAUD_300, 1, FALSE);
+      ObjcChange( OC_FORM, localwin, BUTTON_BAUD_300, 1, FALSE);
       break;
     }
 
-  strcpy(ObjcString(FORM(win),10,NULL),config.init_str);
-  strcpy(ObjcString(FORM(win),13,NULL),config.dial_str);
+  strcpy(ObjcString(FORM(localwin),10,NULL),config.init_str);
+  strcpy(ObjcString(FORM(localwin),13,NULL),config.dial_str);
   
-  FormWindDo(MU_MESAG);
+  res=FormWindDo(MU_MESAG);
+
+  switch(res)
+    {
+    case 1:
+      config.baud=new_baud;
+      strcpy(config.init_str,ObjcString(FORM(localwin),10,NULL));
+      strcpy(config.dial_str,ObjcString(FORM(localwin),13,NULL));
+      config_save();
+      screen_remap_palette();
+      io_configure();
+      break;
+    case 2:
+      screen_remap_palette();
+      break;
+    }
+  
   FormWindEnd();
   appl_fullscreen();
 }
@@ -334,10 +318,10 @@ void appl_form_baud(WINDOW* win)
 /**
  * baud rate selected from menu.
  */
-static void appl_menu_baud(WINDOW *win, int index, int title, void *data)
+static void appl_menu_baud(WINDOW *localwin, int index, int title, void *data)
 {
   MenuTnormal(NULL,index,1);
-  appl_form_baud(win);
+  appl_form_baud();
 }
 
 /**
@@ -481,7 +465,7 @@ short appl_get_fullscreen(void)
 /*
  *	Close resources and cleanly quit application.
  */
-static void __CDECL appl_term( WINDOW *win, short buff[8]) {
+static void __CDECL appl_term( WINDOW *localwin, short buff[8]) {
 	while( wglb.first) {
 		ApplWrite( _AESapid, WM_DESTROY, wglb.first->handle,0,0,0,0); 
 		EvntWindom( MU_MESAG);
@@ -491,6 +475,18 @@ static void __CDECL appl_term( WINDOW *win, short buff[8]) {
 	RsrcFree();
 	ApplExit();
 	exit(0);
+}
+
+/**
+ * Alert for hang-up and optionally, hang-up.
+ */
+void appl_hang_up(void)
+{
+  if (FormAlert(2,"[1][Hang up?][Yes|No]")==1)
+    {
+      io_hang_up();
+    }
+  
 }
 
 /**

@@ -33,7 +33,7 @@ void keyboard_main(int code, unsigned char shift)
   unsigned char key=code>>8;
   if (key==0x3b)
     {
-      appl_form_baud(win);
+      appl_form_baud();
     }
   else if (TTY)
     {
