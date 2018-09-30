@@ -16,10 +16,14 @@
 #define BUTTON_QUIT_YES 2
 #define BUTTON_QUIT_NO 3
 
-/**
- * Attempt to create backing store
- */
-void appl_create_backing_store(void);
+#define BUTTON_BAUD_CANCEL 1
+#define BUTTON_BAUD_OK     2
+#define BUTTON_BAUD_300    3
+#define BUTTON_BAUD_1200   4
+#define BUTTON_BAUD_2400   5
+#define BUTTON_BAUD_4800   6
+#define BUTTON_BAUD_9600   7
+#define BUTTON_BAUD_19200  8
 
 /**
  * Initialize the application context
@@ -81,6 +85,11 @@ static void appl_about_close(WINDOW *win, int index, int mode, void *data);
 static void appl_menu_about(WINDOW *null, int index, int title, void *data);
 
 /**
+ * Show baud rate form
+ */
+void appl_form_baud(WINDOW* win);
+
+/**
  * show app baud form
  */
 static void appl_menu_baud(WINDOW *null, int index, int title, void *data);
@@ -89,6 +98,11 @@ static void appl_menu_baud(WINDOW *null, int index, int title, void *data);
  *	Close resources and cleanly quit application.
  */
 static void __CDECL appl_term( WINDOW *win, short buff[8]);
+
+/**
+ * Show ready prompt
+ */
+void appl_show_ready(void);
 
 /**
  * Finish application

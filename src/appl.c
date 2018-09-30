@@ -2,10 +2,12 @@
 #include <windom.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "appl.h"
 #include "protocol.h"
 #include "screen.h"
 #include "terminal.h"
+#include "config.h"
 #include <osbind.h>
 
 extern unsigned char splash[];
@@ -32,6 +34,8 @@ extern unsigned short scalex_lores[];
 extern unsigned short scaley_lores[];
 extern unsigned short scalex_fullres[];
 extern unsigned short scaley_fullres[];
+
+extern ConfigInfo config;
 
 int16_t magic_os=FALSE;                  // Are we running under MagiC?
 int16_t mint_os=FALSE;                   // Are we running under MINT?
@@ -72,14 +76,6 @@ static void appl_offtop(WINDOW* win, short wbuff[8])
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
-  short xw, yw, ww, hw; // Window dimensions
-  short xy[8];
-
-  if (on_top==TRUE)
-    {
-      wind_update(BEG_UPDATE);
-      wind_update(END_UPDATE);
-    }
 }
 
 /**
@@ -107,35 +103,6 @@ static void appl_kybd(WINDOW *win, short buff[8])
 static void appl_timer(WINDOW *win, short buff[8])
 {
   io_main();
-}
-
-void appl_update_backing_store()
-{
-
-}
-
-/**
- * Attempt to create backing store
- */
-void appl_create_backing_store(void)
-{
-  size_t backing_store_size;
-  appl_backing_store.fd_w=win->w_max;
-  appl_backing_store.fd_h=win->h_max;
-  appl_backing_store.fd_wdwidth=(win->w_max>>4);
-  appl_backing_store.fd_stand=0; // Device specific
-  appl_backing_store.fd_nplanes=app.nplanes;
-  appl_backing_store.fd_r1=0;
-  appl_backing_store.fd_r2=0;
-  appl_backing_store.fd_r3=0;
-
-  // Attempt to allocate memory for backing store. 
-  backing_store_size=(((win->w_max*win->h_max)*app.nplanes)>>4);
-  appl_backing_store.fd_addr=malloc(backing_store_size);
-  if (appl_backing_store.fd_addr==NULL)
-    appl_backing_store_active=false;
-  else
-    appl_backing_store_active=true;
 }
 
 /**
@@ -168,6 +135,7 @@ void applinit(void)
     {
       win=WindCreate(0,app.x,app.y,app.w,app.h);
       WindOpen( win, app.x, app.y, app.x+app.w, app.y+app.h);
+      appl_fullscreen();
     }
   else
     {
@@ -261,28 +229,124 @@ static void appl_menu_about(WINDOW *win, int index, int title, void *data)
   FormWindEnd();
 }
 
+static void appl_form_baud_cancel(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set_old();
+  screen_remap_palette();
+}
+
+static void appl_form_baud_ok(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set_new();
+  config_save();
+  screen_remap_palette();
+  io_configure();
+}
+
+static void appl_form_baud_300(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set(9);
+}
+
+static void appl_form_baud_1200(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set(7);
+}
+
+static void appl_form_baud_2400(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set(4);
+}
+
+static void appl_form_baud_4800(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set(2);
+}
+
+static void appl_form_baud_9600(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set(1);
+}
+
+static void appl_form_baud_19200(WINDOW* win, int index, int mode, void *data)
+{
+  config_baud_set(0);
+}
+
+
 /**
- * show baud rate form
+ * Show baud rate form
+ */
+void appl_form_baud(WINDOW* win)
+{
+  OBJECT *baud = appl_get_tree(FORM_BAUD);  
+  win=FormWindBegin(baud, "Set Baud Rate");
+  ObjcAttachFormFunc( win, BUTTON_BAUD_CANCEL, appl_form_baud_cancel, NULL);
+  ObjcAttachFormFunc( win, BUTTON_BAUD_OK, appl_form_baud_ok, NULL);
+  ObjcAttachFormFunc( win, BUTTON_BAUD_300, appl_form_baud_300, NULL);
+  ObjcAttachFormFunc( win, BUTTON_BAUD_1200, appl_form_baud_1200, NULL);
+  ObjcAttachFormFunc( win, BUTTON_BAUD_2400, appl_form_baud_2400, NULL);
+  ObjcAttachFormFunc( win, BUTTON_BAUD_4800, appl_form_baud_4800, NULL);
+  ObjcAttachFormFunc( win, BUTTON_BAUD_9600, appl_form_baud_9600, NULL);
+  ObjcAttachFormFunc( win, BUTTON_BAUD_19200, appl_form_baud_19200, NULL);
+
+  // Clear radio button widgets
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_OK, 0, FALSE);
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_CANCEL, 0, FALSE);
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_19200, 0, FALSE);
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_9600, 0, FALSE);
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_4800, 0, FALSE);
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_2400, 0, FALSE);
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_1200, 0, FALSE);
+  ObjcChange( OC_FORM, win, BUTTON_BAUD_300, 0, FALSE);
+
+  // And set the appropriate one.
+  switch(config.baud)
+    {
+    case 0: // 19200
+      ObjcChange( OC_FORM, win, BUTTON_BAUD_19200, 1, FALSE);
+      break;
+    case 1: // 9600
+      ObjcChange( OC_FORM, win, BUTTON_BAUD_9600, 1, FALSE);
+      break;
+    case 2: // 4800
+      ObjcChange( OC_FORM, win, BUTTON_BAUD_4800, 1, FALSE);
+      break;
+    case 4: // 2400
+      ObjcChange( OC_FORM, win, BUTTON_BAUD_2400, 1, FALSE);
+      break;
+    case 7: // 1200
+      ObjcChange( OC_FORM, win, BUTTON_BAUD_1200, 1, FALSE);
+      break;
+    case 9: // 300
+      ObjcChange( OC_FORM, win, BUTTON_BAUD_300, 1, FALSE);
+      break;
+    }
+
+  strcpy(ObjcString(FORM(win),10,NULL),config.init_str);
+  strcpy(ObjcString(FORM(win),13,NULL),config.dial_str);
+  
+  FormWindDo(MU_MESAG);
+  FormWindEnd();
+  appl_fullscreen();
+}
+
+/**
+ * baud rate selected from menu.
  */
 static void appl_menu_baud(WINDOW *win, int index, int title, void *data)
 {
-  OBJECT *aboutbox = appl_get_tree(FORM_BAUD);
   MenuTnormal(NULL,index,1);
-  win=FormWindBegin(aboutbox, "Set Baud Rate");
-  FormWindDo(MU_MESAG);
-  FormWindEnd();
+  appl_form_baud(win);
 }
 
 /**
  * Application main loop
  */
 void applmain(void)
-{
-  appl_clear_screen();
-  
+{ 
   for (;;)
     EvntWindom( MU_MESAG|MU_TIMER|MU_KEYBD|MU_BUTTON);
-
 }
 
 void appl_show_menu(void)
@@ -341,6 +405,7 @@ void appl_clear_screen(void)
 void appl_fullscreen(void)
 {
   appl_clear_screen();
+  v_show_c( app.aeshdl, 1);
   appl_screen_visible=true;
 }
 
@@ -426,6 +491,23 @@ static void __CDECL appl_term( WINDOW *win, short buff[8]) {
 	RsrcFree();
 	ApplExit();
 	exit(0);
+}
+
+/**
+ * Show ready prompt
+ */
+void appl_show_ready(void)
+{
+  vst_color(app.aeshdl,1);
+  if (appl_atari_low_res==true)
+    {
+      v_gtext(app.aeshdl,0,184,"PLATOTerm Ready. F1 for Settings.");
+      v_gtext(app.aeshdl,0,192,"HELP for keys. F10 to exit.");
+    }
+  else
+    {
+      v_gtext(app.aeshdl,64,app.work_out[1]-12,"PLATOTerm Ready. F1 for Settings. HELP for keys. F10 to exit.");
+    }
 }
 
 /**

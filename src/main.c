@@ -14,9 +14,12 @@ extern short appl_init_successful;
 
 int main(void)
 {
+  config_init();
+  io_init();
   screen_init();
   applinit();
   terminal_show_greeting();
+  appl_show_ready();
   terminal_init();
   already_started=true;
   

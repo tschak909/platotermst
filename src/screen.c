@@ -452,7 +452,7 @@ void screen_done(void)
  */
 void screen_redraw(void)
 {
-  screen_clear();
+  /* screen_clear(); */
   screen_remap_palette();
 }
 
@@ -584,3 +584,4 @@ void screen_paint(padPt* Coord)
     }
   wind_update(END_UPDATE);
 }
+

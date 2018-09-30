@@ -11,6 +11,7 @@
 #include <windom.h>
 
 unsigned char ch;
+extern WINDOW* win;
 
 void keyboard_out(unsigned char platoKey)
 {
@@ -29,7 +30,12 @@ void keyboard_out(unsigned char platoKey)
 
 void keyboard_main(int code, unsigned char shift)
 {
-  if (TTY)
+  unsigned char key=code>>8;
+  if (key==0x3b)
+    {
+      appl_form_baud(win);
+    }
+  else if (TTY)
     {
       keyboard_out_tty(code&0xff);
     }
@@ -44,10 +50,6 @@ void keyboard_main(int code, unsigned char shift)
 	{
 	  ApplWrite( _AESapid, AP_TERM,0,0,0,0,0);
 	}
-    }
-  else if ((code>>8)==0x3b)
-    {
-      appl_show_menu();
     }
   else
     {

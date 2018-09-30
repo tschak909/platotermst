@@ -18,6 +18,8 @@
  */
 void io_init(void);
 
+void io_configure(void);
+
 /**
  * io_init_funcptrs() - Set up I/O function pointers
  */

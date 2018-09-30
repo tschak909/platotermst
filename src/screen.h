@@ -155,4 +155,9 @@ void screen_paint(padPt* Coord);
 
 void screen_palette_dump(void);
 
+/**
+ * Show ready prompt
+ */
+void screen_show_ready(void);
+
 #endif /* SCREEN_H */

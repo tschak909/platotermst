@@ -3,14 +3,22 @@
 
 #include "io.h"
 #include "protocol.h"
+#include "config.h"
 #include <mint/sysbind.h>
 #include <mint/ostruct.h>
+
+extern ConfigInfo config;
 
 void io_init(void)
 {
   // Right now, bare and naive.
-  Rsconf(7,2,-1,-1,-1,-1);
+  io_configure();
 }
+
+void io_configure(void)
+{
+  Rsconf(config.baud,2,-1,-1,-1,-1);
+} 
 
 /**
  * Not needed for now, remove.
