@@ -70,7 +70,7 @@ short appl_get_fullscreen(void);
  * show quit form
  */
 static void appl_menu_quit(WINDOW *win, int index, int mode, void *data);
-static void appl_form_quit(void);
+void appl_form_quit(void);
 
 /**
  * show hang-up alert

@@ -204,14 +204,14 @@ static void appl_menu_hang_up(WINDOW *win, int index, int mode, void *data)
 }
 
 
-static void appl_form_quit(void)
+void appl_form_quit(void)
 {
-  OBJECT *quitform=appl_get_tree(FORM_QUIT);
-  win=FormWindBegin(quitform, "Quit PLATOTerm");
-  ObjcAttachFormFunc(win,BUTTON_QUIT_YES,appl_quit_yes,NULL);
-  ObjcAttachFormFunc(win,BUTTON_QUIT_NO,appl_quit_no,NULL);
-  FormWindDo(MU_MESAG);
-  FormWindEnd();
+  if (FormAlert(2,"[1][Quit PLATOTerm?][Yes|No]")==1)
+    {
+      io_hang_up();
+      ApplWrite( _AESapid, WM_CLOSED, win->handle, 0, 0, 0, 0);
+      ApplWrite( _AESapid, AP_TERM, 0, 0, 0, 0, 0);
+    }
 }
 
 /**
