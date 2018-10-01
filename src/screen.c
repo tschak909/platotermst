@@ -158,6 +158,10 @@ void screen_clear(void)
       ++highestColorIndex;
     }
   screen_remap_palette();
+  if (TTY)
+    {
+      MenuEnable();
+    }
   wind_update(END_UPDATE);
 }
 

@@ -62,10 +62,10 @@ static void appl_moved(WINDOW* win, short wbuff[8])
 static void appl_ontop(WINDOW* win, short wbuff[8])
 {
   WindSet(win,WF_TOP,0,0,0,0);
-  screen_remap_palette();
   appl_clear_screen();
   screen_redraw();
   on_top=TRUE;
+  screen_remap_palette();
 }
 
 static void appl_offtop(WINDOW* win, short wbuff[8])
@@ -143,8 +143,7 @@ void applinit(void)
       WindOpen( win, app.x+10,app.y+10,app.x+512+10,app.y+512+10);
     }
 
-  appl_show_menu();
-  
+  MenuBar(appl_get_tree(MAINMENU),1);
   WindSetStr( win, WF_NAME, "PLATOTerm ST");
   
   WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
@@ -169,7 +168,8 @@ void applinit(void)
   ObjcAttachMenuFunc(NULL, MENU_BAUD_RATE, appl_menu_baud, NULL);
   ObjcAttachMenuFunc(NULL, MENU_HANG_UP, appl_menu_hang_up, NULL);
   ObjcAttachMenuFunc(NULL,MENU_QUIT,appl_menu_quit,NULL);
-  
+  ObjcAttachMenuFunc(NULL,MENU_PLATO_KEYBOARD,appl_menu_help_keys,NULL);
+  ObjcAttachMenuFunc(NULL,MENU_MICRO_KEYS,appl_menu_micro_keys,NULL);
   appl_init_successful=true;
   
 }
@@ -214,28 +214,36 @@ void appl_form_quit(void)
     }
 }
 
-/**
- * close app about menu
- */
-static void appl_about_close(WINDOW *win, int index, int mode, void *data)
-{
-  MenuTnormal(NULL,index,1);
-  ObjcChange(mode, win, index, 0, FALSE);
-  ApplWrite(_AESapid, WM_CLOSED, win->handle, 0,0,0,0);
-  screen_remap_palette();
-  screen_clear();
-  screen_redraw();
-}
 
 /**
  * show app about menu
  */
 static void appl_menu_about(WINDOW *win, int index, int title, void *data)
 {
-  OBJECT *aboutbox = appl_get_tree(FORM_ABOUT);
   MenuTnormal(NULL,index,1);
-  win=FormWindBegin(aboutbox, "About PLATOTerm ST");
-  ObjcAttachFormFunc(win,BUTTON_ABOUT_OK,appl_about_close,NULL);
+  FormAlert(1,"[2][PLATOTerm 0.5|A PLATO Terminal Emulator|by Thomas Cherryhomes|Copyright (c) 2018 IRATA.ONLINE][OK]");
+}
+
+/**
+ * Show key help form
+ */
+void appl_menu_help_keys(WINDOW* win, int index, int mode, void *data)
+{
+  OBJECT* form = appl_get_tree(FORM_HELP_KEYS);
+  MenuTnormal(NULL,index,1);
+  FormWindBegin(form,"PLATO Keys");
+  FormWindDo(MU_MESAG);
+  FormWindEnd();
+}
+
+/**
+ * show app about menu
+ */
+static void appl_menu_micro_keys(WINDOW *null, int index, int title, void *data)
+{
+  OBJECT* form = appl_get_tree(FORM_MICRO_KEYS);
+  MenuTnormal(NULL,index,1);
+  FormWindBegin(form,"MICRO Keys");
   FormWindDo(MU_MESAG);
   FormWindEnd();
 }
@@ -335,14 +343,12 @@ void applmain(void)
 
 void appl_show_menu(void)
 {
-  // Install menubar
-  MenuBar(appl_get_tree(MAINMENU),1);
+  MenuEnable();
 }
 
 void appl_hide_menu(void)
 {
-  // Install menubar
-  MenuBar(appl_get_tree(MAINMENU),0);
+  MenuDisable();
 }
 
 /**
@@ -470,7 +476,7 @@ static void __CDECL appl_term( WINDOW *localwin, short buff[8]) {
 		ApplWrite( _AESapid, WM_DESTROY, wglb.first->handle,0,0,0,0); 
 		EvntWindom( MU_MESAG);
 	}
-	appl_hide_menu(); // Remove menu bar.
+	MenuBar(appl_get_tree(MAINMENU),0);
 	RsrcXtype( 0, NULL, 0);
 	RsrcFree();
 	ApplExit();

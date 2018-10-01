@@ -22,6 +22,7 @@ int main(void)
   appl_show_ready();
   terminal_init();
   already_started=true;
+  appl_show_menu();
   
   if (appl_init_successful==true)
     {

@@ -115,6 +115,7 @@ void terminal_set_tty(void)
 void terminal_set_plato(void)
 {
   TTY=false;
+  appl_hide_menu();
   screen_clear();
 }
 

@@ -6,11 +6,16 @@
 #define FORM_ABOUT 1
 #define FORM_BAUD 2
 #define FORM_QUIT 3
+#define FORM_HELP_KEYS 4
+#define FORM_MICRO_KEYS 5
 
-#define MENU_ABOUT 7
-#define MENU_BAUD_RATE 16
-#define MENU_HANG_UP 17
-#define MENU_QUIT 18
+#define MENU_ABOUT 8
+#define MENU_BAUD_RATE 17
+#define MENU_HANG_UP 18
+#define MENU_QUIT 19
+#define MENU_PLATO_KEYBOARD 21
+#define MENU_MICRO_KEYS 22
+#define MENU_ACCESS_KEYS 23
 
 #define BUTTON_ABOUT_OK 1
 
@@ -67,6 +72,11 @@ void appl_restore_screen(void);
 short appl_get_fullscreen(void);
 
 /**
+ * Show key help form
+ */
+void appl_menu_help_keys(WINDOW* win, int index, int mode, void *data);
+
+/**
  * show quit form
  */
 static void appl_menu_quit(WINDOW *win, int index, int mode, void *data);
@@ -81,14 +91,15 @@ void appl_show_menu(void);
 void appl_hide_menu(void);
 
 /**
- * close app about menu
+ * show app about menu
  */
-static void appl_about_close(WINDOW *win, int index, int mode, void *data);
+static void appl_menu_about(WINDOW *null, int index, int title, void *data);
 
 /**
  * show app about menu
  */
-static void appl_menu_about(WINDOW *null, int index, int title, void *data);
+static void appl_menu_micro_keys(WINDOW *null, int index, int title, void *data);
+
 
 /**
  * Show baud rate form
