@@ -4,10 +4,11 @@
 #include "protocol.h"
 
 typedef enum _screen_op_type {
-  DOT,
-  LINE,
-  ALPHA,
-  BLOCK_DRAW,
+  SCREEN_OP_DOT,
+  SCREEN_OP_LINE,
+  SCREEN_OP_ALPHA,
+  SCREEN_OP_BLOCK_DRAW,
+  SCREEN_OP_PAINT,
 } ScreenOpType;
 
 typedef struct _screen_op {
