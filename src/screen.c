@@ -145,19 +145,19 @@ void screen_remap_palette(void)
  */
 void screen_clear(void)
 {
-  short x,y,w,h;
-  ScreenOp op;
-  op.type = SCREEN_OP_CLEAR;
-  op.foreground.red=foreground_rgb.red;
-  op.foreground.green=foreground_rgb.green;
-  op.foreground.blue=foreground_rgb.blue;
-  op.background.red=background_rgb.red;
-  op.background.green=background_rgb.green;
-  op.background.blue=background_rgb.blue;
-  screen_queue_free_list(screen_queue);
-  screen_queue_add(screen_queue,op);
-  WindGet(win,WF_WORKXYWH,&x,&y,&w,&h);
-  ApplWrite(_AESapid,WM_REDRAW,win->handle,x,y,w,h);
+  /* short x,y,w,h; */
+  /* ScreenOp op; */
+  /* op.type = SCREEN_OP_CLEAR; */
+  /* op.foreground.red=foreground_rgb.red; */
+  /* op.foreground.green=foreground_rgb.green; */
+  /* op.foreground.blue=foreground_rgb.blue; */
+  /* op.background.red=background_rgb.red; */
+  /* op.background.green=background_rgb.green; */
+  /* op.background.blue=background_rgb.blue; */
+  /* screen_queue_free_list(screen_queue); */
+  /* screen_queue=screen_queue_add(screen_queue,op); */
+  /* WindGet(win,WF_WORKXYWH,&x,&y,&w,&h); */
+  /* ApplWrite(_AESapid,WM_REDRAW,win->handle,x,y,w,h); */
 }
 
 void _screen_clear(ScreenOp* op)
@@ -176,10 +176,10 @@ void _screen_clear(ScreenOp* op)
       ++highestColorIndex;
     }
   //screen_remap_palette();
-  if (TTY)
-    {
-      MenuEnable();
-    }
+  /* if (TTY) */
+  /*   { */
+  /*     MenuEnable(); */
+  /*   } */
   wind_update(END_UPDATE);
 }
 
@@ -197,7 +197,7 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
   op.foreground = foreground_rgb;
   op.background = background_rgb;
   op.CurMode = CurMode;
-  screen_queue_add(screen_queue,op);
+  screen_queue=screen_queue_add(screen_queue,op);
   ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord1->x),screen_y(Coord1->y),screen_x(Coord2->x),screen_y(Coord2->y));
 }
 
@@ -239,7 +239,7 @@ void screen_dot_draw(padPt* Coord)
   op.foreground = foreground_rgb;
   op.background = background_rgb;
   op.CurMode = CurMode;
-  screen_queue_add(screen_queue,op);
+  screen_queue=screen_queue_add(screen_queue,op);
   ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord->x),screen_y(Coord->y),screen_x(Coord->x),screen_y(Coord->y));
 }
 
@@ -286,7 +286,7 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
   op.foreground = foreground_rgb;
   op.background = background_rgb;
   op.CurMode = CurMode;
-  screen_queue_add(screen_queue,op);
+  screen_queue=screen_queue_add(screen_queue,op);
   ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord1->x),screen_y(Coord1->y),screen_x(Coord2->x),screen_y(Coord2->y));
 }
 
@@ -359,7 +359,7 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   op.ModeBold=ModeBold;
   op.Rotate=Rotate;
   op.CurMode=CurMode;
-  screen_queue_add(screen_queue,op);
+  screen_queue=screen_queue_add(screen_queue,op);
   ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord->x),screen_y(Coord->y),screen_x((Coord->y*8)*count),screen_y(Coord->y+16));
 }
 
@@ -537,7 +537,6 @@ void screen_done(void)
 
 void screen_redraw_next(ScreenOp* op)
 {
-  printf("Redraw: %d\n",op->type);
   switch(op->type)
     {
     case SCREEN_OP_DOT:
@@ -566,10 +565,11 @@ void screen_redraw_next(ScreenOp* op)
  */
 void screen_redraw(void)
 {
-  ScreenOpNode* node;
-  for (node=screen_queue; node; node=node->next)
+  ScreenOpNode* node=screen_queue;
+  while (node!=NULL)
     {
       screen_redraw_next(&node->op);
+      node=node->next;
     }
 }
 
@@ -668,7 +668,7 @@ void screen_paint(padPt* Coord)
   op.Coord1.y = Coord->y;
   op.foreground = foreground_rgb;
   op.background = background_rgb;
-  screen_queue_add(screen_queue,op);
+  screen_queue=screen_queue_add(screen_queue,op);
   WindGet(win,WF_WORKXYWH,&x,&y,&w,&h);
   ApplWrite(_AESapid,WM_REDRAW,win->handle,x,y,w,h);
 

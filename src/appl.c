@@ -63,7 +63,6 @@ static void appl_ontop(WINDOW* win, short wbuff[8])
 {
   WindSet(win,WF_TOP,0,0,0,0);
   appl_clear_screen();
-  screen_redraw();
   on_top=TRUE;
   /* screen_remap_palette(); */
 }
@@ -76,6 +75,7 @@ static void appl_offtop(WINDOW* win, short wbuff[8])
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
+  appl_clear_screen();
   screen_redraw();
 }
 
