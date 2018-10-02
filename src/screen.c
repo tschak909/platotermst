@@ -145,19 +145,18 @@ void screen_remap_palette(void)
  */
 void screen_clear(void)
 {
-  /* short x,y,w,h; */
-  /* ScreenOp op; */
-  /* op.type = SCREEN_OP_CLEAR; */
-  /* op.foreground.red=foreground_rgb.red; */
-  /* op.foreground.green=foreground_rgb.green; */
-  /* op.foreground.blue=foreground_rgb.blue; */
-  /* op.background.red=background_rgb.red; */
-  /* op.background.green=background_rgb.green; */
-  /* op.background.blue=background_rgb.blue; */
-  /* screen_queue_free_list(screen_queue); */
-  /* screen_queue=screen_queue_add(screen_queue,op); */
-  /* WindGet(win,WF_WORKXYWH,&x,&y,&w,&h); */
-  /* ApplWrite(_AESapid,WM_REDRAW,win->handle,x,y,w,h); */
+  short x,y,w,h;
+  ScreenOp op;
+  op.type = SCREEN_OP_CLEAR;
+  op.foreground.red=foreground_rgb.red;
+  op.foreground.green=foreground_rgb.green;
+  op.foreground.blue=foreground_rgb.blue;
+  op.background.red=background_rgb.red;
+  op.background.green=background_rgb.green;
+  op.background.blue=background_rgb.blue;
+  screen_queue=screen_queue_free_list(screen_queue);
+  screen_queue=screen_queue_add(screen_queue,op);
+  EvntRedraw(win);
 }
 
 void _screen_clear(ScreenOp* op)
@@ -189,6 +188,7 @@ void _screen_clear(ScreenOp* op)
 void screen_block_draw(padPt* Coord1, padPt* Coord2)
 {
   ScreenOp op;
+  GRECT drawRect;
   op.type=SCREEN_OP_BLOCK_DRAW;
   op.Coord1.x = Coord1->x;
   op.Coord1.y = Coord1->y;
@@ -198,7 +198,11 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
   op.background = background_rgb;
   op.CurMode = CurMode;
   screen_queue=screen_queue_add(screen_queue,op);
-  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord1->x),screen_y(Coord1->y),screen_x(Coord2->x),screen_y(Coord2->y));
+  drawRect.g_x=screen_x(Coord1->x);
+  drawRect.g_y=screen_y(Coord1->y);
+  drawRect.g_w=screen_x(Coord2->x)-screen_x(Coord1->x);
+  drawRect.g_h=screen_y(Coord2->y)-screen_y(Coord1->y);
+  EvntRedrawGrect(win,&drawRect);
 }
 
 void _screen_block_draw(ScreenOp* op)
@@ -233,6 +237,7 @@ void _screen_block_draw(ScreenOp* op)
 void screen_dot_draw(padPt* Coord)
 {
   ScreenOp op;
+  GRECT drawRect;
   op.type = SCREEN_OP_DOT;
   op.Coord1.x = Coord->x;
   op.Coord1.y = Coord->y;
@@ -240,7 +245,11 @@ void screen_dot_draw(padPt* Coord)
   op.background = background_rgb;
   op.CurMode = CurMode;
   screen_queue=screen_queue_add(screen_queue,op);
-  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord->x),screen_y(Coord->y),screen_x(Coord->x),screen_y(Coord->y));
+  drawRect.g_x=screen_x(Coord->x);
+  drawRect.g_y=screen_y(Coord->y);
+  drawRect.g_w=1;
+  drawRect.g_h=1;
+  EvntRedrawGrect(win,&drawRect);
 }
 
 void _screen_dot_draw(ScreenOp* op)
@@ -278,6 +287,7 @@ void _screen_dot_draw(ScreenOp* op)
 void screen_line_draw(padPt* Coord1, padPt* Coord2)
 {
   ScreenOp op;
+  GRECT drawRect;
   op.type = SCREEN_OP_LINE;
   op.Coord1.x = Coord1->x;
   op.Coord1.y = Coord1->y;
@@ -287,7 +297,11 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
   op.background = background_rgb;
   op.CurMode = CurMode;
   screen_queue=screen_queue_add(screen_queue,op);
-  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord1->x),screen_y(Coord1->y),screen_x(Coord2->x),screen_y(Coord2->y));
+  drawRect.g_x=screen_x(Coord1->x);
+  drawRect.g_y=screen_y(Coord1->y);
+  drawRect.g_w=screen_x(Coord2->x)-screen_x(Coord1->x);
+  drawRect.g_h=screen_y(Coord2->y)-screen_y(Coord1->y);
+  EvntRedrawGrect(win,&drawRect);
 }
 
 void _screen_line_draw(ScreenOp* op)
@@ -347,6 +361,7 @@ void screen_char_bold_shift(unsigned short* bold_char, unsigned short* ch)
 void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 {
   ScreenOp op;
+  GRECT drawRect;
   op.type = SCREEN_OP_ALPHA;
   op.Coord1.x = Coord->x;
   op.Coord1.y = Coord->y;
@@ -360,7 +375,11 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   op.Rotate=Rotate;
   op.CurMode=CurMode;
   screen_queue=screen_queue_add(screen_queue,op);
-  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord->x),screen_y(Coord->y),screen_x((Coord->y*8)*count),screen_y(Coord->y+16));
+  drawRect.g_x=screen_x(Coord->x);
+  drawRect.g_y=screen_y(Coord->y);
+  drawRect.g_w=screen_x((Coord->y*8)*count);
+  drawRect.g_h=screen_y(Coord->y+16);
+  EvntRedrawGrect(win,&drawRect);
 }
 
 void _screen_char_draw(ScreenOp* op)
@@ -532,7 +551,7 @@ void screen_tty_char(padByte theChar)
  */
 void screen_done(void)
 {
-  screen_queue_free_list(screen_queue);
+  screen_queue=screen_queue_free_list(screen_queue);
 }
 
 void screen_redraw_next(ScreenOp* op)

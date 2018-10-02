@@ -75,7 +75,7 @@ static void appl_offtop(WINDOW* win, short wbuff[8])
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
-  appl_clear_screen();
+  /* appl_clear_screen(); */
   screen_redraw();
 }
 
@@ -358,7 +358,7 @@ void appl_hide_menu(void)
 void appl_restore_screen( void)
 {
   form_dial( FMD_FINISH, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
-  v_show_c( app.aeshdl, 0);
+  // v_show_c( app.aeshdl, 0);
   appl_screen_visible=false;
 }
 
@@ -395,8 +395,8 @@ void appl_clear_screen(void)
  */
 void appl_fullscreen(void)
 {
-  appl_clear_screen();
-  v_show_c( app.aeshdl, 1);
+  // appl_clear_screen();
+  // v_show_c( app.aeshdl, 1);
   appl_screen_visible=true;
 }
 
