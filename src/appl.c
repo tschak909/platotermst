@@ -76,8 +76,12 @@ static void appl_offtop(WINDOW* win, short wbuff[8])
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
   GRECT area={wbuff[4],wbuff[5],wbuff[6],wbuff[7]};
+  short pxyarray[4]={wbuff[4],wbuff[5],wbuff[4]+wbuff[6],wbuff[5]+wbuff[7]};
   graf_mouse(M_OFF,NULL);
   wind_update(BEG_UPDATE);
+  vsf_interior(app.aeshdl,FIS_SOLID);
+  vsf_color(app.aeshdl,0);
+  v_bar(app.aeshdl,pxyarray);
   screen_redraw(area);
   wind_update(END_UPDATE);
   graf_mouse(M_ON,NULL);
