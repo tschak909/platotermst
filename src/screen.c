@@ -3,7 +3,6 @@
 #include "appl.h"
 #include "screen.h"
 #include "terminal.h"
-#include "screen_queue.h"
 #include <windom.h>
 #include <gem.h>
 #include <stdlib.h>
@@ -146,7 +145,42 @@ void screen_remap_palette(void)
  */
 void screen_clear(void)
 {
+  short x,y,w,h;
+  ScreenOp op;
+  op.type = SCREEN_OP_CLEAR;
+  op.foreground.red=foreground_rgb.red;
+  op.foreground.green=foreground_rgb.green;
+  op.foreground.blue=foreground_rgb.blue;
+  op.background.red=background_rgb.red;
+  op.background.green=background_rgb.green;
+  op.background.blue=background_rgb.blue;
   screen_queue_free_list(screen_queue);
+  screen_queue_add(screen_queue,op);
+  WindGet(win,WF_WORKXYWH,&x,&y,&w,&h);
+  ApplWrite(_AESapid,WM_REDRAW,win->handle,x,y,w,h);
+}
+
+void _screen_clear(ScreenOp* op)
+{
+  wind_update(BEG_UPDATE);
+  appl_clear_screen();
+  memset(palette,-1,sizeof(palette));
+  highestColorIndex=0;
+  palette[0]=op->background;
+  ++highestColorIndex;
+  if ((op->background.red   != op->foreground.red) &&
+      (op->background.green != op->foreground.green) &&
+      (op->background.blue  != op->foreground.blue))
+    {
+      palette[1]=op->foreground;
+      ++highestColorIndex;
+    }
+  //screen_remap_palette();
+  if (TTY)
+    {
+      MenuEnable();
+    }
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -164,6 +198,33 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
   op.background = background_rgb;
   op.CurMode = CurMode;
   screen_queue_add(screen_queue,op);
+  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord1->x),screen_y(Coord1->y),screen_x(Coord2->x),screen_y(Coord2->y));
+}
+
+void _screen_block_draw(ScreenOp* op)
+{
+  short pxyarray[4];
+  
+  pxyarray[0]=screen_x(op->Coord1.x);
+  pxyarray[1]=screen_y(op->Coord1.y);
+  pxyarray[2]=screen_x(op->Coord2.x);
+  pxyarray[3]=screen_y(op->Coord2.y);
+
+  wind_update(BEG_UPDATE);
+  
+  if (op->CurMode==ModeErase || op->CurMode==ModeInverse)
+    {
+      vsf_color(app.aeshdl,screen_color(&op->background)); // white
+    }
+  else
+    {
+      vsf_color(app.aeshdl,screen_color(&op->foreground)); // black
+    }
+  
+  v_bar(app.aeshdl,pxyarray);
+
+  wind_update(END_UPDATE);
+
 }
 
 /**
@@ -179,6 +240,36 @@ void screen_dot_draw(padPt* Coord)
   op.background = background_rgb;
   op.CurMode = CurMode;
   screen_queue_add(screen_queue,op);
+  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord->x),screen_y(Coord->y),screen_x(Coord->x),screen_y(Coord->y));
+}
+
+void _screen_dot_draw(ScreenOp* op)
+{
+  short pxyarray[4];
+  
+  wind_update(BEG_UPDATE);
+
+    switch(op->CurMode)
+    {
+    case ModeWrite:
+      vswr_mode(app.aeshdl,1);
+      vsl_color(app.aeshdl,screen_color(&op->foreground));
+      break;
+    case ModeErase:
+      vswr_mode(app.aeshdl,3);
+      vsl_color(app.aeshdl,screen_color(&op->background));
+      break;
+    }
+  
+  pxyarray[0]=screen_x(op->Coord1.x);
+  pxyarray[1]=screen_y(op->Coord1.y);
+  pxyarray[2]=screen_x(op->Coord1.x);
+  pxyarray[3]=screen_y(op->Coord1.y);
+
+  vsl_type(app.aeshdl,1); // Solid
+  v_pline(app.aeshdl,2,pxyarray);
+
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -196,6 +287,34 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
   op.background = background_rgb;
   op.CurMode = CurMode;
   screen_queue_add(screen_queue,op);
+  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord1->x),screen_y(Coord1->y),screen_x(Coord2->x),screen_y(Coord2->y));
+}
+
+void _screen_line_draw(ScreenOp* op)
+{
+  short pxyarray[4];
+
+  wind_update(BEG_UPDATE);
+  
+  switch(CurMode)
+    {
+    case ModeWrite:
+      vsl_color(app.aeshdl,screen_color(&op->foreground));
+      break;
+    case ModeErase:
+      vsl_color(app.aeshdl,screen_color(&op->background));
+      break;
+    }
+
+  
+  pxyarray[0]=screen_x(op->Coord1.x);
+  pxyarray[1]=screen_y(op->Coord1.y);
+  pxyarray[2]=screen_x(op->Coord2.x);
+  pxyarray[3]=screen_y(op->Coord2.y);
+
+  vsl_type(app.aeshdl,1); // Solid
+  v_pline(app.aeshdl,2,pxyarray);
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -234,12 +353,133 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   op.foreground = foreground_rgb;
   op.background = background_rgb;
   strcpy(op.text,ch);
+  op.count=count;
   op.textMem=CurMem;
   op.TTY=TTY;
   op.ModeBold=ModeBold;
   op.Rotate=Rotate;
   op.CurMode=CurMode;
-  screen_queue_add(screen_queue,op);  
+  screen_queue_add(screen_queue,op);
+  ApplWrite(_AESapid,WM_REDRAW,win->handle,screen_x(Coord->x),screen_y(Coord->y),screen_x((Coord->y*8)*count),screen_y(Coord->y+16));
+}
+
+void _screen_char_draw(ScreenOp* op)
+{
+  char* chptr;
+  unsigned char a;
+  unsigned short* curfont;
+  unsigned char i;
+  short offset;
+  MFDB srcMFDB, destMFDB;
+  short pxyarray[8];
+  short colors[2]={1,0}; // Output colors
+  short current_mode=1;  // Default to Rewrite
+  short bold_char[32];   // Bold character buffer.
+  destMFDB.fd_addr=0; // We blit to the screen.
+
+  wind_update(BEG_UPDATE);
+  
+  // Create copy of character buffer, if queuing up.
+  switch(op->textMem)
+    {
+    case M0:
+      curfont=(unsigned short *)*font;
+      offset=-32;
+      break;
+    case M1:
+      curfont=(unsigned short *)*font;
+      offset=64;
+      break;
+    case M2:
+      curfont=(unsigned short *)fontm23;
+      offset=-32;
+      break;
+    case M3:
+      curfont=(unsigned short *)fontm23;
+      offset=32;      
+      break;
+    }
+
+  switch(op->CurMode)
+    {
+    case ModeWrite:
+      colors[0]=foreground_color_index;
+      colors[1]=background_color_index;
+      current_mode=2; // Transparent
+      break;
+    case ModeRewrite:
+      colors[0]=foreground_color_index;
+      colors[1]=background_color_index;
+      current_mode=1; // Replace
+      break;
+    case ModeErase:
+      colors[0]=background_color_index;
+      colors[1]=foreground_color_index;
+      current_mode=2; // Transparent
+      break;
+    case ModeInverse:
+      colors[0]=background_color_index;
+      colors[1]=foreground_color_index;
+      current_mode=1; // Replace
+      break;
+    }
+
+  srcMFDB.fd_wdwidth=1;
+  srcMFDB.fd_stand=0;
+  srcMFDB.fd_nplanes=1;
+  if (op->ModeBold==padT)
+    {
+      srcMFDB.fd_w=(FONT_SIZE_X*2)-1;
+      srcMFDB.fd_h=(FONT_SIZE_Y*2)-1;
+      pxyarray[0]=pxyarray[1]=0;
+      pxyarray[2]=(FONT_SIZE_X*2)-1;
+      pxyarray[3]=(FONT_SIZE_Y*2)-1;
+      pxyarray[4]=screen_x(op->Coord1.x);
+      pxyarray[5]=screen_y(op->Coord1.y)-(FONT_SIZE_Y*2);
+      pxyarray[6]=screen_x(op->Coord1.x)+(FONT_SIZE_X*2)-1;
+      pxyarray[7]=screen_y(op->Coord1.y)+(FONT_SIZE_Y*2)-1;      
+    }
+  else
+    {
+      srcMFDB.fd_w=FONT_SIZE_X-1;
+      srcMFDB.fd_h=FONT_SIZE_Y-1;
+      pxyarray[0]=pxyarray[1]=0;
+      pxyarray[2]=FONT_SIZE_X-1;
+      pxyarray[3]=FONT_SIZE_Y-1;
+      pxyarray[4]=screen_x(op->Coord1.x);
+      pxyarray[5]=screen_y(op->Coord1.y)-FONT_SIZE_Y;
+      pxyarray[6]=screen_x(op->Coord1.x)+FONT_SIZE_X-1;
+      pxyarray[7]=screen_y(op->Coord1.y)+FONT_SIZE_Y-1;
+    }
+
+  chptr=op->text;
+  if (ModeBold==padT)
+    {
+      for (i=0;i<op->count;++i)
+	{
+	  a=*chptr;
+	  ++chptr;
+	  a+=offset;
+	  screen_char_bold_shift(bold_char,&curfont[(a*FONT_SIZE_Y)]);
+	  srcMFDB.fd_addr=&bold_char;
+	  vrt_cpyfm(app.aeshdl,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
+	}
+    }
+  else
+    {
+      for (i=0;i<op->count;++i)
+	{
+	  a=*chptr;
+	  ++chptr;
+	  a+=offset;
+	  srcMFDB.fd_addr=&curfont[(a*FONT_SIZE_Y)];
+	  vrt_cpyfm(app.aeshdl,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
+	  pxyarray[4]+=FONT_SIZE_X;
+	  pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
+	}
+    }
+
+  wind_update(END_UPDATE);
 }
 
 /**
@@ -292,6 +532,33 @@ void screen_tty_char(padByte theChar)
  */
 void screen_done(void)
 {
+  screen_queue_free_list(screen_queue);
+}
+
+void screen_redraw_next(ScreenOp* op)
+{
+  printf("Redraw: %d\n",op->type);
+  switch(op->type)
+    {
+    case SCREEN_OP_DOT:
+      _screen_dot_draw(op);
+      break;
+    case SCREEN_OP_LINE:
+      _screen_line_draw(op);
+      break;
+    case SCREEN_OP_ALPHA:
+      _screen_char_draw(op);
+      break;
+    case SCREEN_OP_BLOCK_DRAW:
+      _screen_block_draw(op);
+      break;
+    case SCREEN_OP_PAINT:
+      _screen_paint(op);
+      break;
+    case SCREEN_OP_CLEAR:
+      _screen_clear(op);
+      break;
+    }
 }
 
 /**
@@ -299,8 +566,11 @@ void screen_done(void)
  */
 void screen_redraw(void)
 {
-  /* screen_clear(); */
-  screen_remap_palette();
+  ScreenOpNode* node;
+  for (node=screen_queue; node; node=node->next)
+    {
+      screen_redraw_next(&node->op);
+    }
 }
 
 /**
@@ -382,7 +652,7 @@ short screen_color(padRGB* theColor)
   palette[index].red=theColor->red;
   palette[index].green=theColor->green;
   palette[index].blue=theColor->blue;
-  screen_remap_palette();
+  //  screen_remap_palette();
   return index;
 }
 
@@ -392,11 +662,32 @@ short screen_color(padRGB* theColor)
 void screen_paint(padPt* Coord)
 {
   ScreenOp op;
+  short x,y,w,h;
   op.type=SCREEN_OP_PAINT;
   op.Coord1.x = Coord->x;
   op.Coord1.y = Coord->y;
   op.foreground = foreground_rgb;
   op.background = background_rgb;
-  screen_queue_add(screen_queue,op);  
+  screen_queue_add(screen_queue,op);
+  WindGet(win,WF_WORKXYWH,&x,&y,&w,&h);
+  ApplWrite(_AESapid,WM_REDRAW,win->handle,x,y,w,h);
+
 }
 
+void _screen_paint(ScreenOp* op)
+{
+  wind_update(BEG_UPDATE);
+  if (appl_is_mono==1)
+    {
+      vsf_color(app.aeshdl,screen_color(&op->foreground));
+      vsf_interior(app.aeshdl,1); // Solid interior
+      v_contourfill(app.aeshdl,screen_x(op->Coord1.x),screen_y(op->Coord1.y),-1);
+    }
+  else
+    {
+      vsf_color(app.aeshdl,screen_color(&op->foreground));
+      vsf_interior(app.aeshdl,1); // Solid interior
+      v_contourfill(app.aeshdl,screen_x(op->Coord1.x),screen_y(op->Coord1.y),screen_color(&op->background));
+    }
+  wind_update(END_UPDATE);
+}

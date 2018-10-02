@@ -9,6 +9,7 @@ typedef enum _screen_op_type {
   SCREEN_OP_ALPHA,
   SCREEN_OP_BLOCK_DRAW,
   SCREEN_OP_PAINT,
+  SCREEN_OP_CLEAR,
 } ScreenOpType;
 
 typedef struct _screen_op {
@@ -18,6 +19,7 @@ typedef struct _screen_op {
   padRGB foreground;
   padRGB background;
   char text[64];
+  unsigned char count;
   CharMem textMem;
   padBool TTY;
   padBool ModeBold;

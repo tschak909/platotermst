@@ -65,7 +65,7 @@ static void appl_ontop(WINDOW* win, short wbuff[8])
   appl_clear_screen();
   screen_redraw();
   on_top=TRUE;
-  screen_remap_palette();
+  /* screen_remap_palette(); */
 }
 
 static void appl_offtop(WINDOW* win, short wbuff[8])
@@ -76,6 +76,7 @@ static void appl_offtop(WINDOW* win, short wbuff[8])
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
+  screen_redraw();
 }
 
 /**
@@ -311,11 +312,11 @@ void appl_form_baud(void)
       strcpy(config.init_str,ObjcString(FORM(localwin),10,NULL));
       strcpy(config.dial_str,ObjcString(FORM(localwin),13,NULL));
       config_save();
-      screen_remap_palette();
+      /* screen_remap_palette(); */
       io_configure();
       break;
     case 2:
-      screen_remap_palette();
+      /* screen_remap_palette(); */
       break;
     }
   
