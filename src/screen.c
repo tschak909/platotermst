@@ -156,7 +156,7 @@ void screen_clear(void)
   op.background.blue=background_rgb.blue;
   screen_queue=screen_queue_free_list(screen_queue);
   screen_queue=screen_queue_add(screen_queue,op);
-  EvntRedraw(win);
+  _screen_clear(&op);
 }
 
 void _screen_clear(ScreenOp* op)
@@ -174,11 +174,11 @@ void _screen_clear(ScreenOp* op)
       palette[1]=op->foreground;
       ++highestColorIndex;
     }
-  //screen_remap_palette();
-  /* if (TTY) */
-  /*   { */
-  /*     MenuEnable(); */
-  /*   } */
+  screen_remap_palette();
+  if (TTY)
+    {
+      MenuEnable();
+    }
   wind_update(END_UPDATE);
 }
 
@@ -573,21 +573,54 @@ void screen_redraw_next(ScreenOp* op)
     case SCREEN_OP_PAINT:
       _screen_paint(op);
       break;
-    case SCREEN_OP_CLEAR:
-      _screen_clear(op);
-      break;
     }
+}
+
+/**
+ * screen_op_in_area() 
+ * determine if current screen op is in desired redraw area
+ */
+bool screen_op_in_area(ScreenOp* op, GRECT area)
+{
+  GRECT opRect;
+  if (op->type == SCREEN_OP_PAINT)
+    return true;
+  
+  if (op->type==SCREEN_OP_DOT)
+    {
+      opRect.g_x=screen_x(op->Coord1.x)-1;
+      opRect.g_y=screen_y(op->Coord1.y)-1;
+      opRect.g_w=2; // Dots are single pixels.
+      opRect.g_h=2;
+    }
+  else if (op->type==SCREEN_OP_LINE || op->type==SCREEN_OP_BLOCK_DRAW)
+    {
+      opRect.g_x=screen_x(op->Coord1.x)-1;
+      opRect.g_y=screen_y(op->Coord1.y)-1;
+      opRect.g_w=screen_x(op->Coord2.x-op->Coord1.x)+1;
+      opRect.g_h=screen_y(op->Coord2.y-op->Coord1.y)+1;
+    }
+  else if (op->type==SCREEN_OP_ALPHA)
+    {
+      opRect.g_x=screen_x(op->Coord1.x)-1;
+      opRect.g_y=screen_y(op->Coord1.y)-1;
+      opRect.g_w=(FONT_SIZE_X*op->count)+1;
+      opRect.g_h=FONT_SIZE_Y+1;
+    }
+  return rc_intersect(&opRect,&area);
 }
 
 /**
  * screen_redraw()
  */
-void screen_redraw(void)
+void screen_redraw(GRECT area)
 {
   ScreenOpNode* node=screen_queue;
   while (node!=NULL)
     {
-      screen_redraw_next(&node->op);
+      if (screen_op_in_area(&node->op,area))
+	screen_redraw_next(&node->op);
+      
       node=node->next;
     }
 }

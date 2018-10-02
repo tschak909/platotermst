@@ -75,8 +75,12 @@ static void appl_offtop(WINDOW* win, short wbuff[8])
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
-  /* appl_clear_screen(); */
-  screen_redraw();
+  GRECT area={wbuff[4],wbuff[5],wbuff[6],wbuff[7]};
+  graf_mouse(M_OFF,NULL);
+  wind_update(BEG_UPDATE);
+  screen_redraw(area);
+  wind_update(END_UPDATE);
+  graf_mouse(M_ON,NULL);
 }
 
 /**

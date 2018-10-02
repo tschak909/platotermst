@@ -11,6 +11,7 @@
 #define SCREEN_H
 
 #include <stdbool.h>
+#include <windom.h>
 #include "protocol.h"
 #include "screen_queue.h"
 
@@ -92,6 +93,7 @@ void screen_remap_palette(void);
  * screen_clear - Clear the screen
  */
 void screen_clear(void);
+void _screen_clear(ScreenOp* op);
 
 /**
  * screen_block_draw(Coord1, Coord2) - Perform a block fill from Coord1 to Coord2
@@ -130,7 +132,13 @@ void screen_done(void);
 /**
  * screen_redraw()
  */
-void screen_redraw(void);
+void screen_redraw(GRECT area);
+
+/**
+ * screen_op_in_area() 
+ * determine if current screen op is in desired redraw area
+ */
+bool screen_op_in_area(ScreenOp* op, GRECT area);
 
 /**
  * get screen color for mono displays
