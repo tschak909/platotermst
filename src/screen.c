@@ -619,7 +619,15 @@ bool screen_op_in_area(ScreenOp* op, GRECT area)
 void screen_redraw(GRECT area)
 {
   ScreenOpNode* node=screen_queue;
-  vswr_mode(app.aeshdl,1);
+  short pxyarray[4]={(area.g_x-1),(area.g_y-1),(area.g_x+area.g_w)-1,(area.g_y+area.g_h)-1};
+  if (queue_updated==false)
+    {
+      vswr_mode(app.aeshdl,MD_REPLACE);
+      vsf_interior(app.aeshdl,FIS_SOLID);
+      vsf_color(app.aeshdl,0);
+      v_bar(app.aeshdl,pxyarray);
+    }
+  
   while (node!=NULL)
     {
       screen_redraw_next(&node->op);

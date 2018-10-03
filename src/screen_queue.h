@@ -34,6 +34,7 @@ typedef struct _screen_op_node {
 
 void screen_queue_init(ScreenOpNode** head);
 ScreenOpNode* screen_queue_add(ScreenOpNode* node, ScreenOp data);
+ScreenOpNode* _screen_queue_add(ScreenOpNode* node, ScreenOp op);
 void screen_queue_add_at(ScreenOpNode* node, ScreenOp data);
 void screen_queue_remove_node(ScreenOpNode* head);
 ScreenOpNode* screen_queue_free_list(ScreenOpNode *head);
