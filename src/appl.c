@@ -54,6 +54,7 @@ int16_t appl_screen_visible=false;       // Is terminal visible?
 static void appl_moved(WINDOW* win, short wbuff[8])
 {
   short xw, yw, ww, hw;
+  WindSet(win,WF_CURRXYWH,wbuff[4],wbuff[5],wbuff[6],wbuff[7]);
   WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
   window_x=xw;
   window_y=yw;

@@ -63,11 +63,6 @@ char* screen_strndup(unsigned char* ch, unsigned char count)
  */
 short screen_x(short x)
 {
-  short xw,yw,ww,hw;
-  WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
-  window_x=xw;
-  window_y=yw;
-
   if (full_screen==true)
     return scalex[x];
   else
