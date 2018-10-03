@@ -79,6 +79,7 @@ static void appl_redraw(WINDOW* win,short wbuff[8])
   short pxyarray[4]={wbuff[4],wbuff[5],wbuff[4]+wbuff[6],wbuff[5]+wbuff[7]};
   graf_mouse(M_OFF,NULL);
   wind_update(BEG_UPDATE);
+  vswr_mode(app.aeshdl,MD_REPLACE);
   vsf_interior(app.aeshdl,FIS_SOLID);
   vsf_color(app.aeshdl,0);
   v_bar(app.aeshdl,pxyarray);
