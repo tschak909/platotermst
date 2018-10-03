@@ -51,6 +51,16 @@ int16_t appl_init_successful=FALSE;      // Application successfully initialized
 int16_t on_top=FALSE;                    // Application on top?
 int16_t appl_screen_visible=false;       // Is terminal visible?
 
+static void appl_closed(WINDOW* win, short wbuff[8])
+{
+  if (FormAlert(2,"[1][Quit PLATOTerm?][Yes|No]")==1)
+    {
+      io_hang_up();
+      ApplWrite( _AESapid, WM_DESTROY, win->handle, 0, 0, 0, 0);
+      ApplWrite( _AESapid, AP_TERM, 0, 0, 0, 0, 0);
+    }
+}
+
 static void appl_moved(WINDOW* win, short wbuff[8])
 {
   short xw, yw, ww, hw;
@@ -171,6 +181,7 @@ void applinit(void)
   EvntAttach(win,WM_UNTOPPED,appl_offtop);
   EvntAttach(win,WM_REDRAW,appl_redraw);
   EvntAttach(win,WM_MOVED,appl_moved);
+  EvntAttach(win,WM_CLOSED,appl_closed);
   EvntAttach(NULL, AP_TERM, appl_term);
   EvntAttach(win,WM_XTIMER,appl_timer);
   EvntAttach(win,WM_XKEYBD,appl_kybd);
