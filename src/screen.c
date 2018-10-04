@@ -196,8 +196,8 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
   screen_queue=screen_queue_add(screen_queue,op);
   drawRect.g_x=screen_x(Coord1->x)+1;
   drawRect.g_y=screen_y(Coord1->y)+1;
-  drawRect.g_w=(screen_x(Coord2->x)+1)-(screen_x(Coord1->x)+1);
-  drawRect.g_h=(screen_y(Coord2->y)+1)-(screen_y(Coord1->y));
+  drawRect.g_w=abs((screen_x(Coord2->x)+1)-(screen_x(Coord1->x)+1));
+  drawRect.g_h=abs((screen_y(Coord2->y)+1)-(screen_y(Coord1->y)+1));
   queue_updated=true;
   EvntRedrawGrect(win,&drawRect);
   queue_updated=false;
@@ -297,10 +297,10 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
   op.background = background_rgb;
   op.CurMode = CurMode;
   screen_queue=screen_queue_add(screen_queue,op);
-  drawRect.g_x=(screen_x(Coord1->x)+1);
-  drawRect.g_y=(screen_y(Coord1->y)+1);
-  drawRect.g_w=(screen_x(Coord2->x)+1)-(screen_x(Coord1->x)+1);
-  drawRect.g_h=(screen_y(Coord2->y)+1)-(screen_y(Coord1->y)+1);
+  drawRect.g_x=(screen_x(Coord1->x));
+  drawRect.g_y=(screen_y(Coord1->y));
+  drawRect.g_w=abs((screen_x(Coord2->x)+1)-(screen_x(Coord1->x))+1);
+  drawRect.g_h=abs((screen_y(Coord2->y)+1)-(screen_y(Coord1->y))+1);
   queue_updated=true;
   EvntRedrawGrect(win,&drawRect);
   queue_updated=false;
@@ -378,8 +378,8 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   screen_queue=screen_queue_add(screen_queue,op);
   drawRect.g_x=(screen_x(Coord->x)+1);
   drawRect.g_y=(screen_y(Coord->y)+1);
-  drawRect.g_w=(screen_x((Coord->y*8)*count)+1);
-  drawRect.g_h=(screen_y(Coord->y+16)+1);
+  drawRect.g_w=abs((screen_x((Coord->y*FONT_SIZE_X)*count)+1));
+  drawRect.g_h=abs((screen_y(Coord->y+FONT_SIZE_Y)+1));
   queue_updated=true;
   EvntRedrawGrect(win,&drawRect);
   queue_updated=false;

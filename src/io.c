@@ -9,6 +9,9 @@
 
 extern ConfigInfo config;
 
+static unsigned char io_buffer[4096];
+static unsigned short io_buffer_size;
+
 void io_init(void)
 {
   // Right now, bare and naive.
@@ -41,10 +44,16 @@ void io_main(void)
 {
   unsigned char ch;
   if (Bconstat(1)==-1)
-    {
-      ch=(unsigned char)Bconin(1)&0xFF;
-      ShowPLATO(&ch,1);
-    }
+    io_buffer[io_buffer_size++]=(unsigned char)Bconin(1)&0xFF;
+
+  ShowPLATO((padByte *)io_buffer,io_buffer_size);
+  io_buffer_size=0;
+  
+  /* if (Bconstat(1)==-1) */
+  /*   { */
+  /*     ch=(unsigned char)Bconin(1)&0xFF; */
+  /*     ShowPLATO(&ch,1); */
+  /*   } */
 }
 
 void io_recv_serial(void)
