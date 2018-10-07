@@ -51,9 +51,20 @@ int16_t appl_init_successful=FALSE;      // Application successfully initialized
 int16_t on_top=FALSE;                    // Application on top?
 int16_t appl_screen_visible=false;       // Is terminal visible?
 
+static void appl_closed(WINDOW* win, short wbuff[8])
+{
+  if (FormAlert(2,"[1][Quit PLATOTerm?][Yes|No]")==1)
+    {
+      io_hang_up();
+      ApplWrite( _AESapid, WM_DESTROY, win->handle, 0, 0, 0, 0);
+      ApplWrite( _AESapid, AP_TERM, 0, 0, 0, 0, 0);
+    }
+}
+
 static void appl_moved(WINDOW* win, short wbuff[8])
 {
   short xw, yw, ww, hw;
+  WindSet(win,WF_CURRXYWH,wbuff[4],wbuff[5],wbuff[6],wbuff[7]);
   WindGet(win,WF_WORKXYWH,&xw,&yw,&ww,&hw);
   window_x=xw;
   window_y=yw;
@@ -63,9 +74,8 @@ static void appl_ontop(WINDOW* win, short wbuff[8])
 {
   WindSet(win,WF_TOP,0,0,0,0);
   appl_clear_screen();
-  screen_redraw();
   on_top=TRUE;
-  screen_remap_palette();
+  /* screen_remap_palette(); */
 }
 
 static void appl_offtop(WINDOW* win, short wbuff[8])
@@ -76,6 +86,13 @@ static void appl_offtop(WINDOW* win, short wbuff[8])
 
 static void appl_redraw(WINDOW* win,short wbuff[8])
 {
+  GRECT area={wbuff[4],wbuff[5],wbuff[6],wbuff[7]};
+  short pxyarray[4]={wbuff[4],wbuff[5],wbuff[4]+wbuff[6],wbuff[5]+wbuff[7]};
+  graf_mouse(M_OFF,NULL);
+  wind_update(BEG_UPDATE);
+  screen_redraw(area);
+  wind_update(END_UPDATE);
+  graf_mouse(M_ON,NULL);
 }
 
 /**
@@ -160,6 +177,7 @@ void applinit(void)
   EvntAttach(win,WM_UNTOPPED,appl_offtop);
   EvntAttach(win,WM_REDRAW,appl_redraw);
   EvntAttach(win,WM_MOVED,appl_moved);
+  EvntAttach(win,WM_CLOSED,appl_closed);
   EvntAttach(NULL, AP_TERM, appl_term);
   EvntAttach(win,WM_XTIMER,appl_timer);
   EvntAttach(win,WM_XKEYBD,appl_kybd);
@@ -311,11 +329,11 @@ void appl_form_baud(void)
       strcpy(config.init_str,ObjcString(FORM(localwin),10,NULL));
       strcpy(config.dial_str,ObjcString(FORM(localwin),13,NULL));
       config_save();
-      screen_remap_palette();
+      /* screen_remap_palette(); */
       io_configure();
       break;
     case 2:
-      screen_remap_palette();
+      /* screen_remap_palette(); */
       break;
     }
   
@@ -357,7 +375,7 @@ void appl_hide_menu(void)
 void appl_restore_screen( void)
 {
   form_dial( FMD_FINISH, 0, 0, 1 + app.work_out[0], 1 + app.work_out[1], 0, 0, 1 + app.work_out[0], 1 + app.work_out[1]);
-  v_show_c( app.aeshdl, 0);
+  // v_show_c( app.aeshdl, 0);
   appl_screen_visible=false;
 }
 
@@ -394,8 +412,8 @@ void appl_clear_screen(void)
  */
 void appl_fullscreen(void)
 {
-  appl_clear_screen();
-  v_show_c( app.aeshdl, 1);
+  // appl_clear_screen();
+  // v_show_c( app.aeshdl, 1);
   appl_screen_visible=true;
 }
 

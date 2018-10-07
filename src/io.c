@@ -11,6 +11,9 @@ extern ConfigInfo config;
 static unsigned char io_buffer[8192];
 static unsigned short io_buffer_size=0;
 
+static unsigned char io_buffer[4096];
+static unsigned short io_buffer_size;
+
 void io_init(void)
 {
   // Right now, bare and naive.
