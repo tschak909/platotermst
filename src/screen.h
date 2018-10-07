@@ -13,7 +13,6 @@
 #include <stdbool.h>
 #include <windom.h>
 #include "protocol.h"
-#include "screen_queue.h"
 
 #define FGBG_FOREGROUND 0
 #define FGBG_BACKGROUND 1
@@ -93,30 +92,26 @@ void screen_remap_palette(void);
  * screen_clear - Clear the screen
  */
 void screen_clear(void);
-void _screen_clear(ScreenOp* op);
 
 /**
  * screen_block_draw(Coord1, Coord2) - Perform a block fill from Coord1 to Coord2
  */
 void screen_block_draw(padPt* Coord1, padPt* Coord2);
-void _screen_block_draw(ScreenOp* op);
 
 /**
  * screen_dot_draw(Coord) - Plot a mode 0 pixel
  */
 void screen_dot_draw(padPt* Coord);
-void _screen_dot_draw(ScreenOp* op);
 
 /**
  * screen_line_draw(Coord1, Coord2) - Draw a mode 1 line
  */
 void screen_line_draw(padPt* Coord1, padPt* Coord2);
-void _screen_line_draw(ScreenOp* op);
+
 /**
  * screen_char_draw(Coord, ch, count) - Output buffer from ch* of length count as PLATO characters
  */
 void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count);
-void _screen_char_draw(ScreenOp* op);
 
 /**
  * screen_tty_char - Called to plot chars when in tty mode
@@ -132,13 +127,7 @@ void screen_done(void);
 /**
  * screen_redraw()
  */
-void screen_redraw(GRECT area);
-
-/**
- * screen_op_in_area() 
- * determine if current screen op is in desired redraw area
- */
-bool screen_op_in_area(ScreenOp* op, GRECT area);
+void screen_redraw(void);
 
 /**
  * get screen color for mono displays
@@ -164,7 +153,6 @@ void screen_background(padRGB* theColor);
  * Paint
  */
 void screen_paint(padPt* Coord);
-void _screen_paint(ScreenOp* op);
 
 void screen_palette_dump(void);
 
