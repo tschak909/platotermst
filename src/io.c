@@ -12,6 +12,50 @@ extern ConfigInfo config;
 static unsigned char io_buffer[4096];
 static unsigned short io_buffer_size;
 
+struct iorec
+{
+  char *buf;    /* pointer to an array: char buffer[bufsiz] */
+  short bufsiz; /* size of the array         */
+  short head;   /* index for writing         */
+  short tail;   /* index for reading         */
+  short low;    /* low water mark, for XON   */
+  short high;   /* high water mark, for XOFF */
+};
+  
+typedef struct
+{
+  struct iorec in;        /*  0 Input buffer record  */
+  struct iorec out;       /* 14 Output buffer record */
+  char rsr_status;        /* 28 MFP(0x1C) Receiver status */
+  char tsr_status;        /* 29 MFP(0x1D) Transmit status */
+  char xoff_sent;         /* 30 TRUE if we sent XOFF      */
+  char xoff_received;     /* 31 TRUE if we got XOFF       */
+  char mode;              /* 32 Bit 0 XON, Bit 1 RTS mode */
+  char filler;            /* 33 Unused                    */
+} IOREC;
+
+
+#define IBUFSIZ 16384
+#define OBUFSIZ 16
+
+char    st_ibuf[IBUFSIZ];       /* our own input buffer         */
+char    st_obuf[OBUFSIZ];       /* and our own output buffer    */
+
+IOREC   *st_sysr;               /* ptr to system rs232 record   */
+IOREC   st_savr;                /* to save system rs232 record  */
+
+IOREC   st_myiorec =
+  {
+    /* first, an input record */
+    st_ibuf, IBUFSIZ, 0, 0, (IBUFSIZ/4), (3*(IBUFSIZ/4)),
+    
+    /* then an output record */
+    st_obuf, OBUFSIZ, 0, 0, 0, 1,
+    
+    /* and the rsr, tsr, flow control stuff */
+    0, 0, 0, 0, 0, 0
+  };
+
 void io_init(void)
 {
   // Right now, bare and naive.
@@ -21,7 +65,11 @@ void io_init(void)
 void io_configure(void)
 {
   Rsconf(config.baud,2,-1,-1,-1,-1);
-  Ongibit(0x10);  // raise DTR.
+  while(Bconstat(1))            /* flush existing buffer */
+    Bconin(1);
+  st_sysr = (IOREC *)Iorec(0);
+  st_savr = *st_sysr;             /* Save system buffer   */
+  *st_sysr = st_myiorec;          /* Set my io buffer     */
 } 
 
 /**
@@ -86,5 +134,5 @@ void io_hang_up(void)
 
 void io_done()
 {
-  Offgibit(0x10); // Lower DTR.
+  *st_sysr = st_savr;
 }
