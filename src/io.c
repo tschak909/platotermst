@@ -122,7 +122,7 @@ void io_hang_up(void)
   io_send_byte(0x2B);
   io_send_byte(0x2B);
   io_send_byte(0x2B);
-  usleep(3000000);  // for a moment.
+  /* usleep(3000000);  // for a moment. */
   io_send_byte('A');
   io_send_byte('T');
   io_send_byte('H');

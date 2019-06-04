@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include "terminal.h"
 #include "screen.h"
-#include "appl.h"
 #include "splash.h"
 
 /**
@@ -49,14 +48,6 @@ extern unsigned char CharHigh;
 extern padPt TTYLoc;
 extern unsigned char FONT_SIZE_Y;
 extern unsigned char already_started;
-
-/**
- * appl.c externals
- */
-extern int16_t appl_atari_hi_res;
-extern int16_t appl_atari_med_res;      // Are we in Atari Med Res (640x200?)
-extern int16_t appl_atari_low_res;      // Are we in Atari Low Res (640x200?)
-extern int16_t appl_atari_tt_med_res;   // Are we in Atari TT Med Res (640x480?)
 
 /**
  * terminal_init()
@@ -281,16 +272,6 @@ extern unsigned short fontm23[2048];
 
 void terminal_char_load(padWord charNum, charData theChar)
 {
-  if (appl_atari_hi_res==TRUE)
-    terminal_char_load_hires(charNum,theChar);
-  else if (appl_atari_low_res==TRUE)
-    terminal_char_load_lores(charNum,theChar);
-  else if (appl_atari_med_res==TRUE)
-    terminal_char_load_medres(charNum,theChar);
-  else if (appl_atari_tt_med_res==TRUE)
-    terminal_char_load_ttmedres(charNum,theChar);
-  else
-    terminal_char_load_fullres(charNum,theChar);
 }
 
 void terminal_char_load_lores(padWord charNum, charData theChar)

@@ -11,7 +11,6 @@
 #define SCREEN_H
 
 #include <stdbool.h>
-#include <windom.h>
 #include "protocol.h"
 
 #define FGBG_FOREGROUND 0

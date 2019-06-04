@@ -12,7 +12,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 CFLAGS=-m68000 -O2
-LDFLAGS=-lwindom -lgem -lldg -lm
+LDFLAGS=-lm -lgem -lcmini -nostdlib -lgcc
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
@@ -20,7 +20,7 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	$(CC) $(OBJS) ../libcmini/build/startup.o -o $@ -L../libcmini/build $(LDFLAGS)
 	cp $(RSCFILE) $(BUILD_DIR)
 
 # assembly
@@ -31,7 +31,7 @@ $(BUILD_DIR)/%.s.o: %.s
 # c source
 $(BUILD_DIR)/%.c.o: %.c
 	$(MKDIR_P) $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) -I ../libcmini/include $(CFLAGS) -c $< -o $@
 
 # c++ source
 $(BUILD_DIR)/%.cpp.o: %.cpp
