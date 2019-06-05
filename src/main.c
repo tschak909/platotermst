@@ -43,6 +43,7 @@ int main(int argc, char* argv[])
   init_util();
   init_windows();
   init_resource();
+  init_menu();
   
   return 0;
 }
