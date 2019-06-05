@@ -1,6 +1,9 @@
-#include <stdint.h>
+#include "resource.h"
 #include "global.h"
-#include "window.h"
+#include "util.h"
+
+#include <stdlib.h>
+#include <osbind.h>
 
 //#define DEBUG
 #ifdef DEBUG
@@ -15,36 +18,17 @@
 #define debug_printf(format, arg...) do { ; } while (0)
 #endif /* DEBUG */
 
-
-short vdi_handle;    		/* virtual workstation handle */
-
-short work_in[11];   		/* Input to GSX parameter array */
-short work_out[57];  		/* Output from GSX parameter array */
-
-short ap_id;
-
-short window_open_pos_x;
-short window_open_pos_y;
-
-short phys_handle;
-
-short gl_wbox;
-short gl_hbox;
-short gl_hchar;
-short gl_wchar;
-
-OBJECT *gl_menu;
-
-GRECT gl_desk;
-
-void init_global(void)
+short init_resource()
 {
-	window_open_pos_x = 20;
-	window_open_pos_y = 20;
+	if (! rsrc_load(RESOURCENAME))
+	{
+		form_alert(1, "[3][RSC file not found!][Exit]");
+		exit(-1);
+	}
+	return 0;
 }
 
-void free_global(void)
+void free_resource()
 {
+	rsrc_free();
 }
-
-

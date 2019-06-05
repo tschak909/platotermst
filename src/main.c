@@ -5,6 +5,8 @@
 #include "io.h"
 #include "terminal.h"
 #include "keyboard.h"
+#include "util.h"
+#include "window.h"
 
 unsigned char already_started=false;
 
@@ -36,5 +38,11 @@ int main(int argc, char* argv[])
   wind_get_grect(0, WF_WORKXYWH, &gl_desk);
   graf_mouse(ARROW, 0x0L);
   vdi_handle = open_vwork(work_out);
+
+  init_global();
+  init_util();
+  init_windows();
+  init_resource();
+  
   return 0;
 }
