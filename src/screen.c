@@ -10,7 +10,9 @@
 #include <osbind.h>
 #include <string.h>
 #include <math.h>
+#include "window.h"
 
+short width, height;
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
 padPt TTYLoc;
@@ -36,7 +38,12 @@ extern short appl_is_mono;
 
 static char tmptxt[80];
 
-#define VDI_COLOR_SCALE 3.91 
+struct window* screen_window;
+
+extern short work_out[57];
+
+#define VDI_COLOR_SCALE 3.91
+#define PLATOTERMWINDOW_CLASS 0x7074726d // ptrm
 
 /**
  * screen_strndup(ch, count) - duplicate character data.
@@ -54,25 +61,57 @@ char* screen_strndup(unsigned char* ch, unsigned char count)
 }
 
 /**
- * screen_x() - Get screen X coordinates
+ * Window draw callback
  */
-short screen_x(short x)
+void screen_draw(struct window* wi, short x, short y, short w, short h)
 {
+  screen_window->clear(screen_window,x,y,w,h);
 }
 
 /**
- * screen_y() - Get screen Y coordinates
+ * Window delete callback
  */
-short screen_y(short y)
+void screen_delete(struct window* wi)
 {
+  // Pass to window.c to pass it to AES
+  delete_window(wi);
 }
-
 
 /**
  * screen_init() - Set up the screen
  */
 void screen_init(void)
 {
+  width=work_out[0];
+  height=work_out[1];
+  screen_window=create_window(0,"PLATOTERM");
+  screen_window->class=PLATOTERMWINDOW_CLASS;
+  screen_window->draw=screen_draw;
+  screen_window->del=screen_delete;
+
+  if (width==639 && height==479)
+    {
+      // TT Med Res.
+    }
+  else if (width==639 && height==399)
+    {
+      // ST High res
+    }
+  else if (width==639 && height==199)
+    {
+      // ST Med res
+    }
+  else if (width==319 && height==199)
+    {
+      // ST low res
+    }
+
+  open_window(screen_window, 0, 0, width, height);
+  do_redraw(screen_window,
+	    screen_window->work.g_x,
+	    screen_window->work.g_y,
+	    screen_window->work.g_w,
+	    screen_window->work.g_h);
 }
 
 /**

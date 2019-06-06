@@ -6,13 +6,14 @@ SRC_DIRS ?= ./src
 RSCFILE = $(SRC_DIRS)/PLATO.RSC
 
 CC=m68k-atari-mint-gcc
+AS=m68k-atari-mint-as
 
 SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 CFLAGS=-m68000 -O2
-LDFLAGS=-lm -lgem -lcmini -nostdlib -lgcc
+LDFLAGS=-lm -lgem -lcmini -nostdlib -lgcc -lcmini
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
@@ -20,7 +21,7 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CC) $(OBJS) ../libcmini/build/startup.o -o $@ -L../libcmini/build $(LDFLAGS)
+	$(CC) ../libcmini/build/startup.o $(OBJS) -o $@ -L../libcmini/build $(LDFLAGS)
 	cp $(RSCFILE) $(BUILD_DIR)
 
 # assembly

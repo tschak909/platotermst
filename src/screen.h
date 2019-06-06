@@ -12,6 +12,7 @@
 
 #include <stdbool.h>
 #include "protocol.h"
+#include "window.h"
 
 #define FGBG_FOREGROUND 0
 #define FGBG_BACKGROUND 1
@@ -159,5 +160,15 @@ void screen_palette_dump(void);
  * Show ready prompt
  */
 void screen_show_ready(void);
+
+/**
+ * Window draw callback
+ */
+void screen_draw(struct window* wi, short x, short y, short w, short h);
+
+/**
+ * Window delete callback
+ */
+void screen_delete(struct window* wi);
 
 #endif /* SCREEN_H */
