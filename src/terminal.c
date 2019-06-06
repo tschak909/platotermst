@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include "terminal.h"
 #include "screen.h"
-#include "splash.h"
 
 /**
  * ASCII Features to return in Features
@@ -57,14 +56,6 @@ void terminal_init(void)
 {
   terminal_buffer_clear();
   terminal_set_tty();
-}
-
-/**
- * terminal_show_greeting(void) - Show greeting
- */
-void terminal_show_greeting(void)
-{
-  ShowPLATO((padByte *)splash,sizeof(splash));
 }
 
 /**

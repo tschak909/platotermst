@@ -1,5 +1,7 @@
-#include "protocol.h"
+#ifndef SPLASH_H
+#define SPLASH_H
 
+#include "protocol.h"
 const padByte splash[] = {
   0x1b,
   0x02,
@@ -1779,3 +1781,5 @@ const padByte splash[] = {
   0x1b,
   0x03
 };
+
+#endif /* SPLASH_H */
