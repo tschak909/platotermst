@@ -24,11 +24,11 @@ extern unsigned short scaley_lores[];
 extern unsigned short scalex_fullres[];
 extern unsigned short scaley_fullres[];
 
-extern unsigned char font_fullres[];
-extern unsigned char font_hires[];
-extern unsigned char font_ttmedres[];
-extern unsigned char font_medres[];
-extern unsigned char font_lores[];
+extern unsigned short font_fullres[];
+extern unsigned short font_hires[];
+extern unsigned short font_ttmedres[];
+extern unsigned short font_medres[];
+extern unsigned short font_lores[];
 
 extern vdi_handle;
 
@@ -41,7 +41,7 @@ unsigned char FONT_SIZE_X;
 unsigned char FONT_SIZE_Y;
 unsigned short* scalex;
 unsigned short* scaley;
-unsigned char* font[];
+unsigned short** font;
 short background_color_index=0;
 short foreground_color_index=1;
 padRGB background_rgb={0,0,0};
@@ -49,7 +49,7 @@ padRGB foreground_rgb={255,255,255};
 unsigned char highest_color_index=0;
 
 extern padBool FastText; /* protocol.c */
-extern unsigned char fontm23[];
+extern unsigned short fontm23[];
 extern unsigned short full_screen;
 extern unsigned short window_x;
 extern unsigned short window_y;
@@ -156,6 +156,7 @@ void screen_init(void)
       // TT Med Res.
       scalex=scalex_ttmedres;
       scaley=scaley_ttmedres;
+      font=&font_ttmedres;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=15;
     }
@@ -164,6 +165,7 @@ void screen_init(void)
       // ST High res
       scalex=scalex_hires;
       scaley=scaley_hires;
+      font=&font_hires;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=12;      
     }
@@ -172,6 +174,7 @@ void screen_init(void)
       // ST Med res
       scalex=scalex_medres;
       scaley=scaley_medres;
+      font=&font_medres;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=6;
     }
@@ -180,16 +183,32 @@ void screen_init(void)
       // ST low res
       scalex=scalex_lores;
       scaley=scaley_lores;
+      font=&font_lores;
       FONT_SIZE_X=5;
       FONT_SIZE_Y=6;
     }
-
+  else
+    {
+      scalex=scalex_fullres;
+      scaley=scaley_fullres;
+      font=&font_fullres;
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=16;
+    }
+  
   open_window(screen_window, 0, 0, width, height);
   do_redraw(screen_window,
 	    screen_window->work.g_x,
 	    screen_window->work.g_y,
 	    screen_window->work.g_w,
 	    screen_window->work.g_h);
+
+    do_redraw(screen_window,
+	    screen_window->work.g_x,
+	    screen_window->work.g_y,
+	    screen_window->work.g_w,
+	    screen_window->work.g_h);
+  
 }
 
 
@@ -206,21 +225,6 @@ void screen_wait(void)
 void screen_beep(void)
 {
   Bconout(2,0x07);
-}
-
-/**
- * screen_clear - Clear the screen
- */
-void screen_clear(void)
-{
-  if (!screen_window)
-    return;
-  
-  screen_window->clear(screen_window,
-		       screen_window->work.g_x,
-		       screen_window->work.g_y,
-		       screen_window->work.g_w,
-		       screen_window->work.g_h);
 }
 
 /**
@@ -241,6 +245,68 @@ void screen_set_pen_mode(void)
 
   // Also be sure to set interior to solid.
   vsf_interior(vdi_handle,1);
+}
+
+/**
+ * screen_clear - Clear the screen
+ */
+void screen_clear(void)
+{
+  unsigned char i;
+  if (!screen_window)
+    return;
+
+  highest_color_index=0;
+
+  for (i=0;i<16;i++)
+    {
+      palette[i].red=0;
+      palette[i].green=0;
+      palette[i].blue=0;
+    }
+  
+  foreground_color_index=background_color_index=0;
+  
+  palette[0].red=background_rgb.red;
+  palette[0].green=background_rgb.green;
+  palette[0].blue=background_rgb.blue;
+
+  if ((background_rgb.red   != foreground_rgb.red) &&
+      (background_rgb.green != foreground_rgb.green) &&
+      (background_rgb.blue  != foreground_rgb.blue))
+    {
+      palette[1].red=foreground_rgb.red;
+      palette[1].green=foreground_rgb.green;
+      palette[1].blue=foreground_rgb.blue;
+      highest_color_index++;
+      foreground_color_index=1;
+    }
+
+  // Finally, a fall back, if somehow, color 0 and color 1 are black, fix it.
+  if ((palette[1].red==0) &&
+      (palette[1].green==0) &&
+      (palette[1].blue==0) &&
+      (palette[0].red==0) &&
+      (palette[0].green==0) &&
+      (palette[0].blue==0))
+    {
+      palette[0].red=palette[0].green=palette[0].blue=0;
+      palette[1].red=palette[1].green=palette[1].blue=255;
+      foreground_color_index=1;
+      background_color_index=0;
+      foreground_rgb.red=foreground_rgb.green=foreground_rgb.blue=255;
+      background_rgb.red=foreground_rgb.green=foreground_rgb.blue=0;
+    }
+  
+  screen_update_colors();
+
+  screen_set_pen_mode();
+  
+  screen_window->clear(screen_window,
+		       screen_window->work.g_x,
+		       screen_window->work.g_y,
+		       screen_window->work.g_w,
+		       screen_window->work.g_h);
 }
 
 /**
@@ -333,16 +399,15 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   destMFDB.fd_addr=0; // We blit to the screen.
 
   wind_update(BEG_UPDATE);
-  
-  // Create copy of character buffer, if queuing up.
+    // Create copy of character buffer, if queuing up.
   switch(CurMem)
     {
     case M0:
-      curfont=(unsigned short *)*font;
+      curfont=font_hires;
       offset=-32;
       break;
     case M1:
-      curfont=(unsigned short *)*font;
+      curfont=font_hires;
       offset=64;
       break;
     case M2:
@@ -486,13 +551,6 @@ void screen_done(void)
 }
 
 /**
- * screen_redraw()
- */
-void screen_redraw(void)
-{
-}
-
-/**
  * screen_color_matching(color) - return index of matching color, or a new index, 
  * if not found.
  */
@@ -522,10 +580,29 @@ unsigned char screen_color_matching(padRGB* theColor)
 }
 
 /**
+ * screen_remap_palette(void)
+ * Remap the screen palette
+ */
+void screen_update_colors(void)
+{
+  int i=0;
+  for (i=0;i<16;++i)
+    {
+      short current_color[3]={palette[i].red*VDI_COLOR_SCALE,palette[i].green*VDI_COLOR_SCALE,palette[i].blue*VDI_COLOR_SCALE};
+      vs_color(vdi_handle,i,current_color);
+    }
+}
+
+/**
  * Set foreground color
  */
 void screen_foreground(padRGB* theColor)
 {
+  foreground_rgb.red=theColor->red;
+  foreground_rgb.green=theColor->green;
+  foreground_rgb.blue=theColor->blue;
+  foreground_color_index=screen_color_matching(theColor);
+  screen_update_colors();
 }
 
 /**
@@ -533,6 +610,11 @@ void screen_foreground(padRGB* theColor)
  */
 void screen_background(padRGB* theColor)
 {
+  background_rgb.red=theColor->red;
+  background_rgb.green=theColor->green;
+  background_rgb.blue=theColor->blue;
+  background_color_index=screen_color_matching(theColor);
+  screen_update_colors();
 }
 
 /**
@@ -543,16 +625,12 @@ short screen_color_mono(padRGB* theColor)
 }
 
 /**
- * Set selected screen color (fg/bg)
- */
-short screen_color(padRGB* theColor)
-{
-}
-
-/**
  * paint
  */
 void screen_paint(padPt* Coord)
 {
+  vsf_color(vdi_handle,foreground_color_index);
+  vsf_interior(vdi_handle,1); // Solid interior
+  v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
 }
 
