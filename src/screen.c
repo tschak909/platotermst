@@ -46,7 +46,7 @@ short background_color_index=0;
 short foreground_color_index=1;
 padRGB background_rgb={0,0,0};
 padRGB foreground_rgb={255,255,255};
-unsigned char highestColorIndex=0;
+unsigned char highest_color_index=0;
 
 extern padBool FastText; /* protocol.c */
 extern unsigned char fontm23[];
@@ -156,24 +156,32 @@ void screen_init(void)
       // TT Med Res.
       scalex=scalex_ttmedres;
       scaley=scaley_ttmedres;
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=15;
     }
   else if (width==639 && height==399)
     {
       // ST High res
       scalex=scalex_hires;
       scaley=scaley_hires;
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=12;      
     }
   else if (width==639 && height==199)
     {
       // ST Med res
       scalex=scalex_medres;
       scaley=scaley_medres;
+      FONT_SIZE_X=8;
+      FONT_SIZE_Y=6;
     }
   else if (width==319 && height==199)
     {
       // ST low res
       scalex=scalex_lores;
       scaley=scaley_lores;
+      FONT_SIZE_X=5;
+      FONT_SIZE_Y=6;
     }
 
   open_window(screen_window, 0, 0, width, height);
@@ -184,21 +192,6 @@ void screen_init(void)
 	    screen_window->work.g_h);
 }
 
-/**
- * screen_load_driver()
- * Load the TGI driver
- */
-void screen_load_driver(void)
-{
-}
-
-/**
- * screen_init_hook()
- * Called after tgi_init to set any special features, e.g. nmi trampolines.
- */
-void screen_init_hook(void)
-{
-}
 
 /**
  * screen_wait(void) - Sleep for approx 16.67ms
@@ -212,14 +205,7 @@ void screen_wait(void)
  */
 void screen_beep(void)
 {
-}
-
-/**
- * screen_remap_palette(void)
- * Remap the screen palette
- */
-void screen_remap_palette(void)
-{
+  Bconout(2,0x07);
 }
 
 /**
@@ -244,10 +230,12 @@ void screen_set_pen_mode(void)
 {
   if (CurMode==ModeErase || CurMode==ModeInverse)
     {
+      vswr_mode(vdi_handle,3);
       vsf_color(vdi_handle,background_color_index); // white
     }
   else
     {
+      vswr_mode(vdi_handle,1);
       vsf_color(vdi_handle,foreground_color_index); // black
     }
 
@@ -276,6 +264,16 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
  */
 void screen_dot_draw(padPt* Coord)
 {
+  short pxyarray[4];
+  
+  screen_set_pen_mode();
+
+  pxyarray[0]=screen_x(Coord->x);
+  pxyarray[1]=screen_y(Coord->y);
+  pxyarray[2]=screen_x(Coord->x);
+  pxyarray[3]=screen_y(Coord->y);
+
+  v_pline(vdi_handle,2,pxyarray);
 }
 
 /**
@@ -283,6 +281,14 @@ void screen_dot_draw(padPt* Coord)
  */
 void screen_line_draw(padPt* Coord1, padPt* Coord2)
 {
+  short pxyarray[4];
+  
+  pxyarray[0]=screen_x(Coord1->x);
+  pxyarray[1]=screen_y(Coord1->y);
+  pxyarray[2]=screen_x(Coord2->x);
+  pxyarray[3]=screen_y(Coord2->y);
+
+  v_pline(vdi_handle,2,pxyarray);
 }
 
 /**
@@ -290,6 +296,23 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
  */
 void screen_char_bold_shift(unsigned short* bold_char, unsigned short* ch)
 {
+  unsigned short a,i,j,k=0;
+  const unsigned short ANDTAB[8]={0x0100,0x0200,0x0400,0x0800,0x1000,0x2000,0x4000,0x8000};
+  const unsigned short DBLORTAB[8]={0x0003,0x000C,0x0030,0x00C0,0x0300,0x0C00,0x3000,0xC000};
+  for (i=0;i<FONT_SIZE_Y;++i)
+    {
+      a=*ch++;
+      bold_char[k]=bold_char[k+1]=0;
+      for (j=0;j<8;++j)
+	{
+	  if (a&ANDTAB[j])
+	    {
+	      bold_char[k]|=DBLORTAB[j];
+	      bold_char[k+1]|=DBLORTAB[j];
+	    }
+	}
+      k+=2; // Should be (FONT_SIZE*2)-1 on end.
+    }
 }
 
 /**
@@ -297,6 +320,118 @@ void screen_char_bold_shift(unsigned short* bold_char, unsigned short* ch)
  */
 void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 {
+  char* chptr;
+  unsigned char a;
+  unsigned short* curfont;
+  unsigned char i;
+  short offset;
+  MFDB srcMFDB, destMFDB;
+  short pxyarray[8];
+  short colors[2]={1,0}; // Output colors
+  short current_mode=1;  // Default to Rewrite
+  short bold_char[32];   // Bold character buffer.
+  destMFDB.fd_addr=0; // We blit to the screen.
+
+  wind_update(BEG_UPDATE);
+  
+  // Create copy of character buffer, if queuing up.
+  switch(CurMem)
+    {
+    case M0:
+      curfont=(unsigned short *)*font;
+      offset=-32;
+      break;
+    case M1:
+      curfont=(unsigned short *)*font;
+      offset=64;
+      break;
+    case M2:
+      curfont=(unsigned short *)fontm23;
+      offset=-32;
+      break;
+    case M3:
+      curfont=(unsigned short *)fontm23;
+      offset=32;      
+      break;
+    }
+
+  switch(CurMode)
+    {
+    case ModeWrite:
+      colors[0]=foreground_color_index;
+      colors[1]=background_color_index;
+      current_mode=2; // Transparent
+      break;
+    case ModeRewrite:
+      colors[0]=foreground_color_index;
+      colors[1]=background_color_index;
+      current_mode=1; // Replace
+      break;
+    case ModeErase:
+      colors[0]=background_color_index;
+      colors[1]=foreground_color_index;
+      current_mode=2; // Transparent
+      break;
+    case ModeInverse:
+      colors[0]=background_color_index;
+      colors[1]=foreground_color_index;
+      current_mode=1; // Replace
+      break;
+    }
+
+  srcMFDB.fd_wdwidth=1;
+  srcMFDB.fd_stand=0;
+  srcMFDB.fd_nplanes=1;
+  if (ModeBold==padT)
+    {
+      srcMFDB.fd_w=(FONT_SIZE_X*2)-1;
+      srcMFDB.fd_h=(FONT_SIZE_Y*2)-1;
+      pxyarray[0]=pxyarray[1]=0;
+      pxyarray[2]=(FONT_SIZE_X*2)-1;
+      pxyarray[3]=(FONT_SIZE_Y*2)-1;
+      pxyarray[4]=screen_x(Coord->x);
+      pxyarray[5]=screen_y(Coord->y)-(FONT_SIZE_Y*2);
+      pxyarray[6]=screen_x(Coord->x)+(FONT_SIZE_X*2)-1;
+      pxyarray[7]=screen_y(Coord->y)+(FONT_SIZE_Y*2)-1;      
+    }
+  else
+    {
+      srcMFDB.fd_w=FONT_SIZE_X-1;
+      srcMFDB.fd_h=FONT_SIZE_Y-1;
+      pxyarray[0]=pxyarray[1]=0;
+      pxyarray[2]=FONT_SIZE_X-1;
+      pxyarray[3]=FONT_SIZE_Y-1;
+      pxyarray[4]=screen_x(Coord->x);
+      pxyarray[5]=screen_y(Coord->y)-FONT_SIZE_Y;
+      pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X-1;
+      pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y-1;
+    }
+
+  if (ModeBold==padT)
+    {
+      for (i=0;i<count;++i)
+	{
+	  a=*ch;
+	  ++ch;
+	  a+=offset;
+	  screen_char_bold_shift(bold_char,&curfont[(a*FONT_SIZE_Y)]);
+	  srcMFDB.fd_addr=&bold_char;
+	  vrt_cpyfm(vdi_handle,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
+	}
+    }
+  else
+    {
+      for (i=0;i<count;++i)
+	{
+	  a=*ch;
+	  ++ch;
+	  a+=offset;
+	  srcMFDB.fd_addr=&curfont[(a*FONT_SIZE_Y)];
+	  vrt_cpyfm(vdi_handle,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
+	  pxyarray[4]+=FONT_SIZE_X;
+	  pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
+	}
+    }
 }
 
 /**
@@ -304,6 +439,42 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
  */
 void screen_tty_char(padByte theChar)
 {
+  short pxyarray[4];
+  if ((theChar >= 0x20) && (theChar < 0x7F)) {
+    screen_char_draw(&TTYLoc, &theChar, 1);
+    TTYLoc.x += CharWide;
+  }
+  else if ((theChar == 0x0b)) /* Vertical Tab */
+    {
+      TTYLoc.y += CharHigh;
+    }
+  else if ((theChar == 0x08) && (TTYLoc.x > 7))	/* backspace */
+    {
+      TTYLoc.x -= CharWide;
+      vsf_color(vdi_handle,0);
+      vsf_interior(vdi_handle,1); // Solid interior
+      pxyarray[0]=screen_x(TTYLoc.x);
+      pxyarray[1]=screen_y(TTYLoc.y);
+      pxyarray[2]=screen_x(TTYLoc.x+CharWide);
+      pxyarray[3]=screen_y(TTYLoc.y+CharHigh);
+      v_bar(vdi_handle,pxyarray);
+      vsf_color(vdi_handle,1);
+    }
+  else if (theChar == 0x0A)			/* line feed */
+    TTYLoc.y -= CharHigh;
+  else if (theChar == 0x0D)			/* carriage return */
+    TTYLoc.x = 0;
+  
+  if (TTYLoc.x + CharWide > 511) {	/* wrap at right side */
+    TTYLoc.x = 0;
+    TTYLoc.y -= CharHigh;
+  }
+  
+  if (TTYLoc.y < 0) {
+    screen_clear();
+    TTYLoc.y=495;
+  }
+
 }
 
 /**
@@ -322,10 +493,32 @@ void screen_redraw(void)
 }
 
 /**
- * Screen palette dump - remove when working
+ * screen_color_matching(color) - return index of matching color, or a new index, 
+ * if not found.
  */
-void screen_palette_dump(void)
+unsigned char screen_color_matching(padRGB* theColor)
 {
+  unsigned char i;
+  for (i=0;i<16;i++)
+    {
+      if (i>highest_color_index)
+	{
+	  palette[i].red=theColor->red;
+	  palette[i].green=theColor->green;
+	  palette[i].blue=theColor->blue;
+	  highest_color_index++;
+	  return i;
+	}
+      else
+	{
+	  if ((palette[i].red==theColor->red) && 
+	      (palette[i].green==theColor->green) && 
+	      (palette[i].blue==theColor->blue))
+	    {
+	      return i;
+	    }
+	}
+    }
 }
 
 /**
@@ -339,13 +532,6 @@ void screen_foreground(padRGB* theColor)
  * Set background color
  */
 void screen_background(padRGB* theColor)
-{
-}
-
-/**
- * screen_color_matching(theColor)
- */
-short screen_color_matching(padRGB* theColor)
 {
 }
 
