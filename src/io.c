@@ -4,13 +4,13 @@
 #include "io.h"
 #include "protocol.h"
 #include "config.h"
+#include "window.h"
+#include "screen.h"
 #include <mint/sysbind.h>
 #include <mint/ostruct.h>
 
 extern ConfigInfo config;
-
-static unsigned char io_buffer[4096];
-static unsigned short io_buffer_size;
+extern struct window* screen_window;
 
 struct iorec
 {
@@ -40,6 +40,9 @@ typedef struct
 
 char    st_ibuf[IBUFSIZ];       /* our own input buffer         */
 char    st_obuf[OBUFSIZ];       /* and our own output buffer    */
+
+unsigned char io_buffer[4096];
+short io_buffer_len;
 
 IOREC   *st_sysr;               /* ptr to system rs232 record   */
 IOREC   st_savr;                /* to save system rs232 record  */
@@ -72,17 +75,6 @@ void io_configure(void)
   *st_sysr = st_myiorec;          /* Set my io buffer     */
 } 
 
-/**
- * Not needed for now, remove.
- */
-void io_init_funcptrs(void)
-{
-}
-
-void io_open(void)
-{  
-}
-
 void io_send_byte(unsigned char b)
 {
   Bconout(1,b);
@@ -90,26 +82,19 @@ void io_send_byte(unsigned char b)
 
 void io_main(void)
 {
+  struct PLATOTermWindowData* pd=screen_window->priv;
+  
   while (Bconstat(1)==-1)
     {
-      io_buffer[io_buffer_size++]=(unsigned char)Bconin(1)&0xFF;
+      pd->platoData[pd->platoLen++]=
+	 io_buffer[io_buffer_len++]=(unsigned char)Bconin(1)&0xFF;
     }
 
-  if (io_buffer_size>0)
+  if (io_buffer_len>0)
     {
-      ShowPLATO((padByte *)io_buffer,io_buffer_size);
-      io_buffer_size=0;
+      ShowPLATO((padByte *)io_buffer,io_buffer_len);
+      io_buffer_len=0;
     }
-
-  /* if (Bconstat(1)==-1) */
-  /*   { */
-  /*     ch=(unsigned char)Bconin(1)&0xFF; */
-  /*     ShowPLATO(&ch,1); */
-  /*   } */
-}
-
-void io_recv_serial(void)
-{  
 }
 
 /**
@@ -122,7 +107,6 @@ void io_hang_up(void)
   io_send_byte(0x2B);
   io_send_byte(0x2B);
   io_send_byte(0x2B);
-  /* usleep(3000000);  // for a moment. */
   io_send_byte('A');
   io_send_byte('T');
   io_send_byte('H');
@@ -131,7 +115,9 @@ void io_hang_up(void)
   Ongibit(0x10);  // and bring it back up.
 }
 
-
+/**
+ * io_done - Called to put the system iorec back in place.
+ */
 void io_done()
 {
   *st_sysr = st_savr;

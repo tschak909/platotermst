@@ -65,12 +65,6 @@ extern short work_out[57];
 #define PLATOTERMWINDOW_CLASS 0x7074726d // ptrm
 #define PLATO_BUFFER_SIZE 32768
 
-struct PLATOTermWindowData
-{
-  padByte* platoData;
-  short platoLen;
-};
-
 /**
  * screen_strndup(ch, count) - duplicate character data.
  */
@@ -97,6 +91,14 @@ short screen_x(short x)
 short screen_y(short y)
 {
   return scaley[y]+screen_window->work.g_y;
+}
+
+/**
+ * Window Timer callback, used to call I/O.
+ */
+void screen_timer(struct window* wi)
+{
+  io_main();
 }
 
 /**
@@ -143,6 +145,7 @@ void screen_init(void)
   screen_window->class=PLATOTERMWINDOW_CLASS;
   screen_window->draw=screen_draw;
   screen_window->del=screen_delete;
+  screen_window->timer=screen_timer;
   pd = malloc(sizeof(struct PLATOTermWindowData));
   pd->platoData=malloc(PLATO_BUFFER_SIZE);  
   screen_window->priv = pd;
@@ -194,20 +197,19 @@ void screen_init(void)
       font=&font_fullres;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=16;
+      width=height=512;
     }
-  
-  open_window(screen_window, 0, 0, width, height);
-  do_redraw(screen_window,
-	    screen_window->work.g_x,
-	    screen_window->work.g_y,
-	    screen_window->work.g_w,
-	    screen_window->work.g_h);
 
-    do_redraw(screen_window,
-	    screen_window->work.g_x,
-	    screen_window->work.g_y,
-	    screen_window->work.g_w,
-	    screen_window->work.g_h);
+  if (FONT_SIZE_Y==16)
+    open_window(screen_window,10, 32, width, height);
+  else
+    open_window(screen_window, 0, 0, width, height);
+
+  do_redraw(screen_window,
+  	    screen_window->work.g_x,
+  	    screen_window->work.g_y,
+  	    screen_window->work.g_w,
+  	    screen_window->work.g_h);
   
 }
 
@@ -398,7 +400,6 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   short bold_char[32];   // Bold character buffer.
   destMFDB.fd_addr=0; // We blit to the screen.
 
-  wind_update(BEG_UPDATE);
     // Create copy of character buffer, if queuing up.
   switch(CurMem)
     {

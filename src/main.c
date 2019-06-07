@@ -52,7 +52,7 @@ void multi(void)
     short event;
     short keystate;
     short keyreturn;
-    long msec = 600;
+    long msec = 0;
     struct window *wi = NULL;
 
     do
@@ -69,7 +69,7 @@ void multi(void)
         {
             wi = from_handle(msgbuff[3]);
             switch (msgbuff[0])
-            {
+            {	      
                 case WM_REDRAW:
                     do_redraw(wi, msgbuff[4], msgbuff[5], msgbuff[6], msgbuff[7]);
                     break;
@@ -236,8 +236,7 @@ int main(int argc, char* argv[])
     }  
   
   free_menu();
-  free_windows();
-  free_resource();
+  free_windows();  free_resource();
   free_util();
   free_global();
   

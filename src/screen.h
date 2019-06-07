@@ -17,6 +17,12 @@
 #define FGBG_FOREGROUND 0
 #define FGBG_BACKGROUND 1
 
+struct PLATOTermWindowData
+{
+  padByte* platoData;
+  short platoLen;
+};
+
 /**
  * screen_init() - Set up the screen
  */
