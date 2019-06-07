@@ -65,6 +65,11 @@ void multi(void)
 
         wind_update(true);
 
+	if (event & MU_KEYBD)
+	  {
+	    keyboard_main(keyreturn,keystate);
+	  }
+	
         if (event & MU_MESAG)
         {
             wi = from_handle(msgbuff[3]);
@@ -166,9 +171,8 @@ void multi(void)
 
                 default:
                     break;
-            } /* switch (msgbuff[0]) */
+            }
         }
-
         else if (event & MU_TIMER)
         {
             /*
@@ -177,8 +181,6 @@ void multi(void)
              */
             foreach_window(timer_cb);
         }
-
-
         else if (event & MU_BUTTON)
         {
             if (butdown)
@@ -191,19 +193,21 @@ void multi(void)
             }
         }
         else if (event & MU_KEYBD)
-        {
-            short title, item;
-
-            if (is_menu_key(gl_menu, keyreturn, keystate, &title, &item))
-            {
-                menu_tnormal(gl_menu, title, false);
-                handle_menu(gl_menu, title, item);
-                menu_tnormal(gl_menu, title, true);
-            }
-        }
+	  {
+	    short title, item;
+	    
+	    keyboard_main(keyreturn,keystate);
+	    
+	    /* if (is_menu_key(gl_menu, keyreturn, keystate, &title, &item)) */
+	    /*   { */
+	    /*     menu_tnormal(gl_menu, title, false); */
+	    /*     handle_menu(gl_menu, title, item); */
+	    /*     menu_tnormal(gl_menu, title, true); */
+	    /*   } */
+	  }
         wind_update(false);
     } while (!quit);
-
+    
     free_windows();
     exit(0);
 }

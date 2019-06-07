@@ -138,21 +138,8 @@ void screen_init(void)
 {
   struct PLATOTermWindowData* pd;
 
-  // Set up window
   width=work_out[0];
   height=work_out[1];
-  screen_window=create_window(0,"PLATOTERM");
-  screen_window->class=PLATOTERMWINDOW_CLASS;
-  screen_window->draw=screen_draw;
-  screen_window->del=screen_delete;
-  screen_window->timer=screen_timer;
-  pd = malloc(sizeof(struct PLATOTermWindowData));
-  pd->platoData=malloc(PLATO_BUFFER_SIZE);  
-  screen_window->priv = pd;
-
-  // Copy splash data to window
-  memcpy(pd->platoData,(padByte *)splash,sizeof(splash));
-  pd->platoLen=sizeof(splash);
   
   if (width==639 && height==479)
     {
@@ -200,6 +187,20 @@ void screen_init(void)
       width=height=512;
     }
 
+  // Set up window
+  screen_window=create_window(0,"PLATOTERM");
+  screen_window->class=PLATOTERMWINDOW_CLASS;
+  screen_window->draw=screen_draw;
+  screen_window->del=screen_delete;
+  screen_window->timer=screen_timer;
+  pd = malloc(sizeof(struct PLATOTermWindowData));
+  pd->platoData=malloc(PLATO_BUFFER_SIZE);  
+  screen_window->priv = pd;
+
+  // Copy splash data to window
+  memcpy(pd->platoData,(padByte *)splash,sizeof(splash));
+  pd->platoLen=sizeof(splash);
+  
   if (FONT_SIZE_Y==16)
     open_window(screen_window,10, 32, width, height);
   else
@@ -255,6 +256,8 @@ void screen_set_pen_mode(void)
 void screen_clear(void)
 {
   unsigned char i;
+  struct PLATOTermWindowData* pd=screen_window->priv;
+  
   if (!screen_window)
     return;
 
@@ -309,6 +312,9 @@ void screen_clear(void)
 		       screen_window->work.g_y,
 		       screen_window->work.g_w,
 		       screen_window->work.g_h);
+
+  /* // Reset the buffer. */
+  /* pd->platoLen=0; */
 }
 
 /**
