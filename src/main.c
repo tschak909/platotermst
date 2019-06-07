@@ -225,7 +225,8 @@ int main(int argc, char* argv[])
   init_windows();
   init_resource();
   init_menu();
-
+  init_userdef();
+  
   screen_init();
   
   butdown = 1;

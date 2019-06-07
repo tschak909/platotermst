@@ -32,6 +32,7 @@ extern unsigned short font_lores[];
 
 extern vdi_handle;
 
+short xoff,yoff;
 short width, height;
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
@@ -41,7 +42,7 @@ unsigned char FONT_SIZE_X;
 unsigned char FONT_SIZE_Y;
 unsigned short* scalex;
 unsigned short* scaley;
-unsigned short** font;
+unsigned short* font;
 short background_color_index=0;
 short foreground_color_index=1;
 padRGB background_rgb={0,0,0};
@@ -146,7 +147,7 @@ void screen_init(void)
       // TT Med Res.
       scalex=scalex_ttmedres;
       scaley=scaley_ttmedres;
-      font=&font_ttmedres;
+      font=font_ttmedres;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=15;
     }
@@ -155,16 +156,20 @@ void screen_init(void)
       // ST High res
       scalex=scalex_hires;
       scaley=scaley_hires;
-      font=&font_hires;
+      font=font_hires;
       FONT_SIZE_X=8;
-      FONT_SIZE_Y=12;      
+      FONT_SIZE_Y=12;
+      yoff=16;
+      height-=16;
     }
   else if (width==639 && height==199)
     {
       // ST Med res
       scalex=scalex_medres;
       scaley=scaley_medres;
-      font=&font_medres;
+      font=font_medres;
+      yoff=8;
+      height-=8;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=6;
     }
@@ -173,15 +178,17 @@ void screen_init(void)
       // ST low res
       scalex=scalex_lores;
       scaley=scaley_lores;
-      font=&font_lores;
+      font=font_lores;
       FONT_SIZE_X=5;
       FONT_SIZE_Y=6;
+      yoff=8;
+      height-=8;
     }
   else
     {
       scalex=scalex_fullres;
       scaley=scaley_fullres;
-      font=&font_fullres;
+      font=font_fullres;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=16;
       width=height=512;
@@ -204,7 +211,7 @@ void screen_init(void)
   if (FONT_SIZE_Y==16)
     open_window(screen_window,10, 32, width, height);
   else
-    open_window(screen_window, 0, 0, width, height);
+    open_window(screen_window, xoff, yoff, width, height);
 
   do_redraw(screen_window,
   	    screen_window->work.g_x,
@@ -410,11 +417,11 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   switch(CurMem)
     {
     case M0:
-      curfont=font_hires;
+      curfont=font;
       offset=-32;
       break;
     case M1:
-      curfont=font_hires;
+      curfont=font;
       offset=64;
       break;
     case M2:

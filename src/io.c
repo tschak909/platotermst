@@ -56,7 +56,7 @@ IOREC   st_myiorec =
     st_obuf, OBUFSIZ, 0, 0, 0, 1,
     
     /* and the rsr, tsr, flow control stuff */
-    0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 2, 0
   };
 
 void io_init(void)
