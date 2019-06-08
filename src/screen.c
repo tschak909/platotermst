@@ -48,6 +48,7 @@ short foreground_color_index=1;
 padRGB background_rgb={0,0,0};
 padRGB foreground_rgb={255,255,255};
 unsigned char highest_color_index=0;
+unsigned char being_redrawn;
 
 extern padBool FastText; /* protocol.c */
 extern unsigned short fontm23[];
@@ -65,6 +66,21 @@ extern short work_out[57];
 #define VDI_COLOR_SCALE 3.91
 #define PLATOTERMWINDOW_CLASS 0x7074726d // ptrm
 #define PLATO_BUFFER_SIZE 32768
+
+/**
+ * screen_clip_whole_window_if_not_redrawing(void)
+ * Clip the work area if window isn't being redrawn, avoiding spill-over 
+ */
+void screen_clip_whole_window_if_not_redrawing(short on)
+{
+  if (being_redrawn==false)
+    set_clipping(vdi_handle,
+		 screen_window->work.g_x,
+		 screen_window->work.g_y,
+		 screen_window->work.g_w,
+		 screen_window->work.g_h,
+		 on);
+}
 
 /**
  * screen_strndup(ch, count) - duplicate character data.
@@ -108,8 +124,10 @@ void screen_timer(struct window* wi)
 void screen_draw(struct window* wi, short x, short y, short w, short h)
 {
   struct PLATOTermWindowData* pd=wi->priv;
+  being_redrawn=true;
   screen_window->clear(screen_window,x,y,w,h);
   ShowPLATO((padByte *)pd->platoData,pd->platoLen);
+  being_redrawn=false;
 }
 
 /**
@@ -149,7 +167,9 @@ void screen_init(void)
       scaley=scaley_ttmedres;
       font=font_ttmedres;
       FONT_SIZE_X=8;
-      FONT_SIZE_Y=15;
+      FONT_SIZE_Y=14;
+      yoff=16;
+      height-=16;
     }
   else if (width==639 && height==399)
     {
@@ -264,6 +284,8 @@ void screen_clear(void)
 {
   unsigned char i;
   struct PLATOTermWindowData* pd=screen_window->priv;
+
+  screen_clip_whole_window_if_not_redrawing(true);
   
   if (!screen_window)
     return;
@@ -322,6 +344,8 @@ void screen_clear(void)
 
   /* // Reset the buffer. */
   /* pd->platoLen=0; */
+
+    screen_clip_whole_window_if_not_redrawing(false);
 }
 
 /**
@@ -330,7 +354,9 @@ void screen_clear(void)
 void screen_block_draw(padPt* Coord1, padPt* Coord2)
 {
   short pxyarray[4];
-  
+
+  screen_clip_whole_window_if_not_redrawing(true);
+
   pxyarray[0]=screen_x(Coord1->x);
   pxyarray[1]=screen_y(Coord1->y);
   pxyarray[2]=screen_x(Coord2->x);
@@ -338,6 +364,8 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
 
   screen_set_pen_mode();
   v_bar(vdi_handle,pxyarray);
+
+  screen_clip_whole_window_if_not_redrawing(false);
 }
 
 /**
@@ -346,6 +374,8 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
 void screen_dot_draw(padPt* Coord)
 {
   short pxyarray[4];
+
+  screen_clip_whole_window_if_not_redrawing(true);
   
   screen_set_pen_mode();
 
@@ -355,6 +385,8 @@ void screen_dot_draw(padPt* Coord)
   pxyarray[3]=screen_y(Coord->y);
 
   v_pline(vdi_handle,2,pxyarray);
+
+  screen_clip_whole_window_if_not_redrawing(false);
 }
 
 /**
@@ -363,6 +395,8 @@ void screen_dot_draw(padPt* Coord)
 void screen_line_draw(padPt* Coord1, padPt* Coord2)
 {
   short pxyarray[4];
+
+  screen_clip_whole_window_if_not_redrawing(true);
   
   pxyarray[0]=screen_x(Coord1->x);
   pxyarray[1]=screen_y(Coord1->y);
@@ -370,6 +404,8 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
   pxyarray[3]=screen_y(Coord2->y);
 
   v_pline(vdi_handle,2,pxyarray);
+
+  screen_clip_whole_window_if_not_redrawing(false);
 }
 
 /**
@@ -413,6 +449,8 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   short bold_char[32];   // Bold character buffer.
   destMFDB.fd_addr=0; // We blit to the screen.
 
+  screen_clip_whole_window_if_not_redrawing(true);
+  
     // Create copy of character buffer, if queuing up.
   switch(CurMem)
     {
@@ -511,6 +549,8 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 	  pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X;
 	}
     }
+
+  screen_clip_whole_window_if_not_redrawing(false);
 }
 
 /**
@@ -645,6 +685,6 @@ void screen_paint(padPt* Coord)
 {
   vsf_color(vdi_handle,foreground_color_index);
   vsf_interior(vdi_handle,1); // Solid interior
-  v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
+  // v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
 }
 
