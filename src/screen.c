@@ -30,7 +30,7 @@ extern unsigned short font_ttmedres[];
 extern unsigned short font_medres[];
 extern unsigned short font_lores[];
 
-extern vdi_handle;
+short vdi_handle;
 
 short xoff,yoff;
 short width, height;
@@ -66,6 +66,8 @@ extern short work_out[57];
 #define VDI_COLOR_SCALE 3.91
 #define PLATOTERMWINDOW_CLASS 0x7074726d // ptrm
 #define PLATO_BUFFER_SIZE 32768
+
+#define DIE() printf("Do we get here?\n"); for (;;) {}
 
 /**
  * screen_clip_whole_window_if_not_redrawing(void)
@@ -156,7 +158,7 @@ void screen_delete(struct window* wi)
 void screen_init(void)
 {
   struct PLATOTermWindowData* pd;
-
+  
   width=work_out[0];
   height=work_out[1];
   
@@ -213,9 +215,12 @@ void screen_init(void)
       FONT_SIZE_Y=16;
       width=height=512;
     }
-
+  
   // Set up window
-  screen_window=create_window(0,"PLATOTERM");
+  if (FONT_SIZE_Y==16)
+    screen_window=create_window(9,"PLATOTERM");
+  else
+    screen_window=create_window(0,"PLATOTERM");
   screen_window->class=PLATOTERMWINDOW_CLASS;
   screen_window->draw=screen_draw;
   screen_window->del=screen_delete;
@@ -223,10 +228,6 @@ void screen_init(void)
   pd = malloc(sizeof(struct PLATOTermWindowData));
   pd->platoData=malloc(PLATO_BUFFER_SIZE);  
   screen_window->priv = pd;
-
-  // Copy splash data to window
-  memcpy(pd->platoData,(padByte *)splash,sizeof(splash));
-  pd->platoLen=sizeof(splash);
   
   if (FONT_SIZE_Y==16)
     open_window(screen_window,10, 32, width, height);
@@ -239,6 +240,9 @@ void screen_init(void)
   	    screen_window->work.g_w,
   	    screen_window->work.g_h);
   
+  // Copy splash data to window
+  memcpy(pd->platoData,(padByte *)splash,sizeof(splash));
+  pd->platoLen=sizeof(splash);
 }
 
 
@@ -343,7 +347,7 @@ void screen_clear(void)
 		       screen_window->work.g_h);
 
   /* // Reset the buffer. */
-  /* pd->platoLen=0; */
+  pd->platoLen=0;
 
     screen_clip_whole_window_if_not_redrawing(false);
 }

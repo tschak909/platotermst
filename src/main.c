@@ -9,6 +9,8 @@
 #include "util.h"
 #include "window.h"
 
+#define DIE() printf("Did we get here?\n"); for (;;) {}
+
 unsigned char already_started=false;
 
 short vdi_handle;    		/* virtual workstation handle */
@@ -214,18 +216,24 @@ void multi(void)
 
 int main(int argc, char* argv[])
 {
+  short i;
   gl_apid = appl_init();
   phys_handle = graf_handle(&gl_wchar, &gl_hchar, &gl_wbox, &gl_hbox);
+  vdi_handle=phys_handle;
   wind_get_grect(0, WF_WORKXYWH, &gl_desk);
   graf_mouse(ARROW, 0x0L);
-  vdi_handle = open_vwork(work_out);
 
+  for (i = 0; i < 10; work_in[i++] = 1);
+  work_in[10] = 2;
+  v_opnvwk(work_in, &vdi_handle, work_out);
+
+  printf("VDI HANDLE: %d",vdi_handle);
+  
   init_global();
   init_util();
   init_windows();
   init_resource();
   init_menu();
-  init_userdef();
   
   screen_init();
   

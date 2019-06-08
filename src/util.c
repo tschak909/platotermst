@@ -4,6 +4,8 @@
 #include "util.h"
 #include "global.h"
 
+extern short vdi_handle;
+
 //#define DEBUG
 #ifdef DEBUG
 /*
@@ -21,8 +23,6 @@ void init_userdef(void);
 
 short init_util(void)
 {
-	init_userdef();
-
 	return 0;
 }
 
@@ -54,10 +54,8 @@ short rc_intersect(register GRECT *r1, register GRECT *r2)
 
 short open_vwork(short work_out[])
 {
-	short vdi_handle;
 	int i;
 
-	vdi_handle = graf_handle(&gl_wchar, &gl_hchar, &gl_wbox, &gl_hbox);
 	for (i = 0; i < 10; work_in[i++] = 1);
 	work_in[10] = 2;
 	v_opnvwk(work_in, &vdi_handle, work_out);

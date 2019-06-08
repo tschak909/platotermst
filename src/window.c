@@ -10,6 +10,8 @@
 static short max_windows = 4;
 static short num_windows = 0;
 
+#define DIE() printf("Did we get here?"); for (;;) {}
+
 //#define DEBUG
 #ifdef DEBUG
 /*
@@ -333,7 +335,7 @@ long stop_timer(void)
 void do_redraw(struct window *wi, short xc, short yc, short wc, short hc)
 {
 	GRECT t1, t2;
-
+	
 	graf_mouse(M_OFF, 0);
     wind_update(true);
 
