@@ -1,4 +1,3 @@
-
 #include "protocol.h"
 #include "math.h"
 #include "screen.h"
@@ -62,6 +61,15 @@ static char tmptxt[80];
 struct window* screen_window;
 
 extern short work_out[57];
+
+struct vdi_palette_entry
+{
+  short r;
+  short g;
+  short b;
+};
+
+struct vdi_palette_entry saved_palette[16];
 
 #define VDI_COLOR_SCALE 3.91
 #define PLATOTERMWINDOW_CLASS 0x7074726d // ptrm
@@ -151,11 +159,29 @@ void screen_delete(struct window* wi)
 }
 
 /**
+ * screen_save_vdi_palette() - Save the VDI palette to saved_palette
+ */
+void screen_save_vdi_palette(void)
+{
+  short color[3];
+  short i;
+  for (i=0;i<16;i++)
+    {
+      vq_color(vdi_handle,i,0,color);
+      saved_palette[i].r=color[0];
+      saved_palette[i].g=color[1];
+      saved_palette[i].b=color[2];
+    }
+}
+
+/**
  * screen_init() - Set up the screen
  */
 void screen_init(void)
 {
   struct PLATOTermWindowData* pd;
+
+  screen_save_vdi_palette();
   
   width=work_out[0];
   height=work_out[1];
@@ -266,15 +292,13 @@ void screen_beep(void)
  */
 void screen_set_pen_mode(void)
 {
-  if (CurMode==ModeErase || CurMode==ModeInverse)
+  if ((CurMode==ModeErase) || (CurMode==ModeInverse))
     {
-      vswr_mode(vdi_handle,3);
       vsf_color(vdi_handle,background_color_index); // white
       vsl_color(vdi_handle,background_color_index);
     }
   else
     {
-      vswr_mode(vdi_handle,1);
       vsf_color(vdi_handle,foreground_color_index); // black
       vsl_color(vdi_handle,foreground_color_index);
     }
@@ -416,6 +440,8 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
 
   if ((being_redrawn==false) && (screen_window->topped==false))
     return;
+
+  screen_set_pen_mode();
   
   pxyarray[0]=screen_x(Coord1->x);
   pxyarray[1]=screen_y(Coord1->y);
@@ -619,11 +645,28 @@ void screen_tty_char(padByte theChar)
 }
 
 /**
+ * screen_restore_vdi_palette(void) - Restore VDI from saved_palette
+ */
+void screen_restore_vdi_palette(void)
+{
+  short i;
+  short color[3];
+  for (i=0;i<16;i++)
+    {
+      color[0]=saved_palette[i].r;
+      color[1]=saved_palette[i].g;
+      color[2]=saved_palette[i].b;
+      vs_color(vdi_handle,i,color);
+    }
+}
+
+/**
  * screen_done()
  * Close down TGI
  */
 void screen_done(void)
 {
+  screen_restore_vdi_palette();
 }
 
 /**
@@ -714,6 +757,6 @@ void screen_paint(padPt* Coord)
 {
   vsf_color(vdi_handle,foreground_color_index);
   vsf_interior(vdi_handle,1); // Solid interior
-  v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
+  /* v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index); */
 }
 

@@ -9,8 +9,6 @@
 #include "util.h"
 #include "window.h"
 
-#define DIE() printf("Did we get here?\n"); for (;;) {}
-
 unsigned char already_started=false;
 
 short vdi_handle;    		/* virtual workstation handle */
@@ -200,12 +198,12 @@ void multi(void)
 	    
 	    keyboard_main(keyreturn,keystate);
 	    
-	    /* if (is_menu_key(gl_menu, keyreturn, keystate, &title, &item)) */
-	    /*   { */
-	    /*     menu_tnormal(gl_menu, title, false); */
-	    /*     handle_menu(gl_menu, title, item); */
-	    /*     menu_tnormal(gl_menu, title, true); */
-	    /*   } */
+	    if (is_menu_key(gl_menu, keyreturn, keystate, &title, &item))
+	      {
+	        menu_tnormal(gl_menu, title, false);
+	        handle_menu(gl_menu, title, item);
+	        menu_tnormal(gl_menu, title, true);
+	      }
 	  }
         wind_update(false);
     } while (!quit);
@@ -227,8 +225,6 @@ int main(int argc, char* argv[])
   work_in[10] = 2;
   v_opnvwk(work_in, &vdi_handle, work_out);
 
-  printf("VDI HANDLE: %d",vdi_handle);
-  
   init_global();
   init_util();
   init_windows();
@@ -247,9 +243,12 @@ int main(int argc, char* argv[])
       menu_bar(gl_menu, 0);
       gl_menu = NULL;
     }  
+
+  screen_done();
   
   free_menu();
-  free_windows();  free_resource();
+  free_windows();
+  free_resource();
   free_util();
   free_global();
   

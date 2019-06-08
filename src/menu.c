@@ -306,9 +306,22 @@ bool is_menu_key(OBJECT *root, short key, short state, short *title, short *item
 
 short handle_menu(OBJECT *menu, short title, short item)
 {
-    /* short res; */
+    short res;
 
-    /* res = true; */
+    res = true;
+    switch (title)
+      {
+      case 4:
+	switch(item)
+	  {
+	  case 19:
+	    quit=true;
+	    break;
+	  }
+      }
+
+    return res;
+    
     /* switch (title) */
     /* { */
     /*     case MMENU_ACC:	/\* accessory menu *\/ */
@@ -408,5 +421,4 @@ short handle_menu(OBJECT *menu, short title, short item)
     /* } /\* switch(title) *\/ */
 
     /* return res; */
-  return 0;
 }
