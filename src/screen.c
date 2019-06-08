@@ -67,8 +67,6 @@ extern short work_out[57];
 #define PLATOTERMWINDOW_CLASS 0x7074726d // ptrm
 #define PLATO_BUFFER_SIZE 32768
 
-#define DIE() printf("Do we get here?\n"); for (;;) {}
-
 /**
  * screen_clip_whole_window_if_not_redrawing(void)
  * Clip the work area if window isn't being redrawn, avoiding spill-over 
@@ -226,7 +224,9 @@ void screen_init(void)
   screen_window->del=screen_delete;
   screen_window->timer=screen_timer;
   pd = malloc(sizeof(struct PLATOTermWindowData));
-  pd->platoData=malloc(PLATO_BUFFER_SIZE);  
+  pd->platoData=malloc(PLATO_BUFFER_SIZE);
+  pd->platoLen=0;
+  memset(pd->platoData,0,PLATO_BUFFER_SIZE);
   screen_window->priv = pd;
   
   if (FONT_SIZE_Y==16)
@@ -270,11 +270,13 @@ void screen_set_pen_mode(void)
     {
       vswr_mode(vdi_handle,3);
       vsf_color(vdi_handle,background_color_index); // white
+      vsl_color(vdi_handle,background_color_index);
     }
   else
     {
       vswr_mode(vdi_handle,1);
       vsf_color(vdi_handle,foreground_color_index); // black
+      vsl_color(vdi_handle,foreground_color_index);
     }
 
   // Also be sure to set interior to solid.
@@ -294,6 +296,9 @@ void screen_clear(void)
   if (!screen_window)
     return;
 
+  if ((being_redrawn==false) && (screen_window->topped==false))
+    return;
+  
   highest_color_index=0;
 
   for (i=0;i<16;i++)
@@ -346,8 +351,9 @@ void screen_clear(void)
 		       screen_window->work.g_w,
 		       screen_window->work.g_h);
 
-  /* // Reset the buffer. */
-  pd->platoLen=0;
+  if (being_redrawn==0)
+    /* // Reset the buffer. */
+    pd->platoLen=0;
 
     screen_clip_whole_window_if_not_redrawing(false);
 }
@@ -360,6 +366,9 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
   short pxyarray[4];
 
   screen_clip_whole_window_if_not_redrawing(true);
+
+  if ((being_redrawn==false) && (screen_window->topped==false))
+    return;
 
   pxyarray[0]=screen_x(Coord1->x);
   pxyarray[1]=screen_y(Coord1->y);
@@ -380,6 +389,9 @@ void screen_dot_draw(padPt* Coord)
   short pxyarray[4];
 
   screen_clip_whole_window_if_not_redrawing(true);
+
+  if ((being_redrawn==false) && (screen_window->topped==false))
+    return;
   
   screen_set_pen_mode();
 
@@ -401,6 +413,9 @@ void screen_line_draw(padPt* Coord1, padPt* Coord2)
   short pxyarray[4];
 
   screen_clip_whole_window_if_not_redrawing(true);
+
+  if ((being_redrawn==false) && (screen_window->topped==false))
+    return;
   
   pxyarray[0]=screen_x(Coord1->x);
   pxyarray[1]=screen_y(Coord1->y);
@@ -454,6 +469,9 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   destMFDB.fd_addr=0; // We blit to the screen.
 
   screen_clip_whole_window_if_not_redrawing(true);
+
+  if ((being_redrawn==false) && (screen_window->topped==false))
+    return;
   
     // Create copy of character buffer, if queuing up.
   switch(CurMem)
@@ -656,6 +674,9 @@ void screen_update_colors(void)
  */
 void screen_foreground(padRGB* theColor)
 {
+  if ((being_redrawn==false) && (screen_window->topped==false))
+    return;
+
   foreground_rgb.red=theColor->red;
   foreground_rgb.green=theColor->green;
   foreground_rgb.blue=theColor->blue;
@@ -668,6 +689,10 @@ void screen_foreground(padRGB* theColor)
  */
 void screen_background(padRGB* theColor)
 {
+
+  if ((being_redrawn==false) && (screen_window->topped==false))
+    return;
+  
   background_rgb.red=theColor->red;
   background_rgb.green=theColor->green;
   background_rgb.blue=theColor->blue;
@@ -689,6 +714,6 @@ void screen_paint(padPt* Coord)
 {
   vsf_color(vdi_handle,foreground_color_index);
   vsf_interior(vdi_handle,1); // Solid interior
-  // v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
+  v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
 }
 
