@@ -73,7 +73,7 @@ struct vdi_palette_entry saved_palette[16];
 
 #define VDI_COLOR_SCALE 3.91
 #define PLATOTERMWINDOW_CLASS 0x7074726d // ptrm
-#define PLATO_BUFFER_SIZE 32768
+#define PLATO_BUFFER_SIZE 16384
 
 /**
  * screen_clip_whole_window_if_not_redrawing(void)
@@ -374,7 +374,7 @@ void screen_clear(void)
 		       screen_window->work.g_y,
 		       screen_window->work.g_w,
 		       screen_window->work.g_h);
-
+  
   if (being_redrawn==0)
     /* // Reset the buffer. */
     pd->platoLen=0;
@@ -757,6 +757,6 @@ void screen_paint(padPt* Coord)
 {
   vsf_color(vdi_handle,foreground_color_index);
   vsf_interior(vdi_handle,1); // Solid interior
-  /* v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index); */
+  v_contourfill(vdi_handle,screen_x(Coord->x),screen_y(Coord->y),background_color_index);
 }
 
