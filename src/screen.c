@@ -391,15 +391,15 @@ void screen_block_draw(padPt* Coord1, padPt* Coord2)
 
   screen_clip_whole_window_if_not_redrawing(true);
 
-  if ((being_redrawn==false) && (screen_window->topped==false))
-    return;
+  pxyarray[0]=screen_x(min(Coord1->x,Coord2->x));
+  pxyarray[1]=screen_y(min(Coord1->y,Coord2->y));
+  pxyarray[2]=screen_x(max(Coord2->x,Coord1->x));
+  pxyarray[3]=screen_y(max(Coord2->y,Coord1->y));
 
-  pxyarray[0]=screen_x(Coord1->x);
-  pxyarray[1]=screen_y(Coord1->y);
-  pxyarray[2]=screen_x(Coord2->x);
-  pxyarray[3]=screen_y(Coord2->y);
-
-  screen_set_pen_mode();
+  /* screen_set_pen_mode(); */
+  vsf_color(vdi_handle,0);
+  vsf_interior(vdi_handle,1);
+  vswr_mode(vdi_handle,1);
   v_bar(vdi_handle,pxyarray);
 
   screen_clip_whole_window_if_not_redrawing(false);

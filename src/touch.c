@@ -1,5 +1,6 @@
 
 #include "touch.h"
+#include <gem.h>
 
 /**
  * touch_init() - Set up touch screen
@@ -20,6 +21,10 @@ void touch_main(void)
  */
 void touch_allow(padBool allow)
 {
+  if (allow)
+    graf_mouse(M_OFF,0x0L);
+  else
+    graf_mouse(M_ON,0x0L);
 }
 
 /**
