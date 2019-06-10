@@ -8,6 +8,9 @@
 #include "keyboard.h"
 #include "util.h"
 #include "window.h"
+#include "menu.h"
+#include "resource.h"
+#include "global.h"
 
 unsigned char already_started=false;
 

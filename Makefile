@@ -5,7 +5,7 @@ SRC_DIRS ?= ./src
 
 RSCFILE = $(SRC_DIRS)/PLATO.RSC
 
-CC=m68k-atari-mint-gcc
+CC=m68k-atari-mint-gcc-8
 AS=m68k-atari-mint-as
 
 SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)

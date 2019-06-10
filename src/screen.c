@@ -3,6 +3,8 @@
 #include "screen.h"
 #include "splash.h"
 #include "terminal.h"
+#include "util.h"
+#include "io.h"
 #include <gem.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -194,8 +196,8 @@ void screen_init(void)
       font=font_ttmedres;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=14;
-      yoff=16;
-      height-=16;
+      yoff=18;
+      height-=18;
     }
   else if (width==639 && height==399)
     {
@@ -205,8 +207,8 @@ void screen_init(void)
       font=font_hires;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=12;
-      yoff=16;
-      height-=16;
+      yoff=18;
+      height-=18;
     }
   else if (width==639 && height==199)
     {
@@ -214,8 +216,8 @@ void screen_init(void)
       scalex=scalex_medres;
       scaley=scaley_medres;
       font=font_medres;
-      yoff=8;
-      height-=8;
+      yoff=10;
+      height-=10;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=6;
     }
@@ -227,8 +229,8 @@ void screen_init(void)
       font=font_lores;
       FONT_SIZE_X=5;
       FONT_SIZE_Y=6;
-      yoff=8;
-      height-=8;
+      yoff=10;
+      height-=10;
     }
   else
     {
@@ -388,14 +390,14 @@ void screen_clear(void)
 void screen_block_draw(padPt* Coord1, padPt* Coord2)
 {
   short pxyarray[4];
-
+  
   screen_clip_whole_window_if_not_redrawing(true);
 
   pxyarray[0]=screen_x(min(Coord1->x,Coord2->x));
   pxyarray[1]=screen_y(min(Coord1->y,Coord2->y));
   pxyarray[2]=screen_x(max(Coord2->x,Coord1->x));
   pxyarray[3]=screen_y(max(Coord2->y,Coord1->y));
-
+  
   /* screen_set_pen_mode(); */
   vsf_color(vdi_handle,0);
   vsf_interior(vdi_handle,1);
@@ -423,7 +425,7 @@ void screen_dot_draw(padPt* Coord)
   pxyarray[1]=screen_y(Coord->y);
   pxyarray[2]=screen_x(Coord->x);
   pxyarray[3]=screen_y(Coord->y);
-
+  
   v_pline(vdi_handle,2,pxyarray);
 
   screen_clip_whole_window_if_not_redrawing(false);
