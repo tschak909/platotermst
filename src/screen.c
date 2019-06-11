@@ -84,12 +84,23 @@ struct vdi_palette_entry saved_palette[16];
 void screen_clip_whole_window_if_not_redrawing(short on)
 {
   if (being_redrawn==false)
-    set_clipping(vdi_handle,
-		 screen_window->work.g_x,
-		 screen_window->work.g_y,
-		 screen_window->work.g_w,
-		 screen_window->work.g_h,
-		 on);
+    {
+      set_clipping(vdi_handle,
+		   screen_window->work.g_x,
+		   screen_window->work.g_y,
+		   screen_window->work.g_w,
+		   screen_window->work.g_h,
+		   on);
+
+      if (on==true)
+	{
+	  wind_update(BEG_UPDATE);
+	}
+      else
+	{
+	  wind_update(END_UPDATE);
+	}
+    }
 }
 
 /**
@@ -322,7 +333,7 @@ void screen_clear(void)
   if (!screen_window)
     return;
 
-  if ((being_redrawn==false) && (screen_window->topped==false))
+  if ((screen_window->topped==false))
     return;
   
   highest_color_index=0;
