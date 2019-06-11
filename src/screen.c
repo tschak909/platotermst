@@ -146,6 +146,7 @@ void screen_draw(struct window* wi, short x, short y, short w, short h)
 {
   struct PLATOTermWindowData* pd=wi->priv;
   being_redrawn=true;
+  CurMem=M0;
   screen_window->clear(screen_window,x,y,w,h);
   ShowPLATO((padByte *)pd->platoData,pd->platoLen);
   being_redrawn=false;
