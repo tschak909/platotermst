@@ -11,6 +11,7 @@
 #include "menu.h"
 #include "resource.h"
 #include "global.h"
+#include "dialog.h"
 
 unsigned char already_started=false;
 
@@ -40,6 +41,9 @@ static short mx;
 static short my;            /* mouse x and y pos. */
 static short butdown;       /* button state tested for, UP/DOWN */
 static short ret;           /* dummy return variable */
+
+struct dialog_handler* about_dialog;
+struct dialog_handler* prefs_dialog;
 
 bool quit;
 
@@ -215,6 +219,16 @@ void multi(void)
     exit(0);
 }
 
+short about_exit_handler(struct dialog_handler *dial, short exit_obj)
+{
+    return 0;
+}
+
+short prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
+{
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
   short i;
@@ -233,12 +247,16 @@ int main(int argc, char* argv[])
   init_windows();
   init_resource();
   init_menu();
+  init_dialogs();
   
   screen_init();
   
   butdown = 1;
   quit = false;
 
+  about_dialog = create_dialog(1,&about_exit_handler,NULL);
+  prefs_dialog = create_dialog(2,&prefs_exit_handler,NULL);
+  
   multi();
 
   if (gl_menu != NULL)
@@ -248,7 +266,8 @@ int main(int argc, char* argv[])
     }  
 
   screen_done();
-  
+
+  free_dialogs();
   free_menu();
   free_windows();
   free_resource();

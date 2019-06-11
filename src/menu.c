@@ -10,6 +10,9 @@
 #include "util.h"
 #include "menu.h"
 #include "resource.h"
+#include "dialog.h"
+
+extern struct dialog_handler* about_dialog;
 
 //#define DEBUG
 #ifdef DEBUG
@@ -311,9 +314,19 @@ short handle_menu(OBJECT *menu, short title, short item)
     res = true;
     switch (title)
       {
+      case 3:
+	switch(item)
+	  {
+	  case 8:
+	    about_dialog->dialog_do(about_dialog);
+	    break;
+	  }
       case 4:
 	switch(item)
 	  {
+	  case 17:
+	    prefs_dialog->dialog_do(prefs_dialog);
+	    break;
 	  case 19:
 	    quit=true;
 	    break;
