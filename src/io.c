@@ -35,13 +35,13 @@ typedef struct
 } IOREC;
 
 
-#define IBUFSIZ 16384
+#define IBUFSIZ 8192
 #define OBUFSIZ 16
 
 char    st_ibuf[IBUFSIZ];       /* our own input buffer         */
 char    st_obuf[OBUFSIZ];       /* and our own output buffer    */
 
-unsigned char io_buffer[4096];
+unsigned char io_buffer[8192];
 short io_buffer_len;
 
 IOREC   *st_sysr;               /* ptr to system rs232 record   */
@@ -67,7 +67,7 @@ void io_init(void)
 
 void io_configure(void)
 {
-  Rsconf(config.baud,2,-1,-1,-1,-1);
+  Rsconf(4,2,-1,-1,-1,-1);
   while(Bconstat(1))            /* flush existing buffer */
     Bconin(1);
   st_sysr = (IOREC *)Iorec(0);

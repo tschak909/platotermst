@@ -44,6 +44,8 @@ static short ret;           /* dummy return variable */
 
 struct dialog_handler* about_dialog;
 struct dialog_handler* prefs_dialog;
+struct dialog_handler* keys_dialog;
+struct dialog_handler* micro_dialog;
 
 bool quit;
 
@@ -224,6 +226,16 @@ short about_exit_handler(struct dialog_handler *dial, short exit_obj)
     return 0;
 }
 
+short keys_exit_handler(struct dialog_handler *dial, short exit_obj)
+{
+    return 0;
+}
+
+short micro_exit_handler(struct dialog_handler *dial, short exit_obj)
+{
+    return 0;
+}
+
 short prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
 {
     return 0;
@@ -256,6 +268,8 @@ int main(int argc, char* argv[])
 
   about_dialog = create_dialog(1,&about_exit_handler,NULL);
   prefs_dialog = create_dialog(2,&prefs_exit_handler,NULL);
+  keys_dialog = create_dialog(4,&keys_exit_handler,NULL);
+  micro_dialog = create_dialog(5,&micro_exit_handler,NULL);
   
   multi();
 

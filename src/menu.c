@@ -30,6 +30,8 @@ extern struct dialog_handler* about_dialog;
 
 extern struct dialog_handler *about_dialog;
 extern struct dialog_handler *prefs_dialog;
+extern struct dialog_handler *keys_dialog;
+extern struct dialog_handler *micro_dialog;
 
 static char *fileerr;
 
@@ -321,6 +323,7 @@ short handle_menu(OBJECT *menu, short title, short item)
 	    about_dialog->dialog_do(about_dialog);
 	    break;
 	  }
+	break;
       case 4:
 	switch(item)
 	  {
@@ -331,6 +334,18 @@ short handle_menu(OBJECT *menu, short title, short item)
 	    quit=true;
 	    break;
 	  }
+	break;
+      case 5:
+	switch(item)
+	  {
+	  case 21:
+	    keys_dialog->dialog_do(keys_dialog);
+	    break;
+	  case 22:
+	    micro_dialog->dialog_do(micro_dialog);
+	    break;
+	  }
+	break;
       }
 
     return res;
