@@ -274,15 +274,17 @@ void screen_init(void)
   else
     open_window(screen_window, xoff, yoff, width, height);
 
-  do_redraw(screen_window,
+  // Copy splash data to window
+  memcpy(pd->platoData,(padByte *)splash,sizeof(splash));
+  pd->platoLen=sizeof(splash);
+
+    do_redraw(screen_window,
   	    screen_window->work.g_x,
   	    screen_window->work.g_y,
   	    screen_window->work.g_w,
   	    screen_window->work.g_h);
   
-  // Copy splash data to window
-  memcpy(pd->platoData,(padByte *)splash,sizeof(splash));
-  pd->platoLen=sizeof(splash);
+
 }
 
 

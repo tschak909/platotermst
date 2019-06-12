@@ -46,7 +46,7 @@ short init_menu()
     res = rsrc_gaddr(R_TREE, 0, &gl_menu);
     if (res != 0)
     {
-        fix_menu(gl_menu);
+        /* fix_menu(gl_menu); */
         menu_bar(gl_menu, 1);
     }
 

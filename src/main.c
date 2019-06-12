@@ -100,78 +100,78 @@ void multi(void)
                     break;
 
                 case WM_SIZED:
-                case WM_MOVED:
-                    if (wi->size) wi->size(wi, msgbuff[4], msgbuff[5], msgbuff[6], msgbuff[7]);
-                    break;
+                /* case WM_MOVED: */
+                /*     if (wi->size) wi->size(wi, msgbuff[4], msgbuff[5], msgbuff[6], msgbuff[7]); */
+                /*     break; */
 
-                case WM_FULLED:
-                    if (wi->full) wi->full(wi);
-                    break;
+                /* case WM_FULLED: */
+                /*     if (wi->full) wi->full(wi); */
+                /*     break; */
 
-                case WM_CLOSED:
-                    if (wi->del) wi->del(wi);
-                    break;
+                /* case WM_CLOSED: */
+                /*     if (wi->del) wi->del(wi); */
+                /*     break; */
 
-                case WM_ARROWED:
-                    switch (msgbuff[4])
-                    {
-                        case WA_UPPAGE:
-                            wi->top -= wi->work.g_h / wi->y_fac;
-                            break;
+                /* case WM_ARROWED: */
+                /*     switch (msgbuff[4]) */
+                /*     { */
+                /*         case WA_UPPAGE: */
+                /*             wi->top -= wi->work.g_h / wi->y_fac; */
+                /*             break; */
 
-                        case WA_DNPAGE:
-                            wi->top += wi->work.g_h / wi->y_fac;
-                            break;
+                /*         case WA_DNPAGE: */
+                /*             wi->top += wi->work.g_h / wi->y_fac; */
+                /*             break; */
 
-                        case WA_UPLINE:
-                            wi->top--;
-                            break;
+                /*         case WA_UPLINE: */
+                /*             wi->top--; */
+                /*             break; */
 
-                        case WA_DNLINE:
-                            wi->top++;
-                            break;
+                /*         case WA_DNLINE: */
+                /*             wi->top++; */
+                /*             break; */
 
-                        case WA_LFPAGE:
-                            wi->left -= wi->doc_width - wi->work.g_w / wi->x_fac;
-                            break;
+                /*         case WA_LFPAGE: */
+                /*             wi->left -= wi->doc_width - wi->work.g_w / wi->x_fac; */
+                /*             break; */
 
-                        case WA_RTPAGE:
-                            wi->left += wi->doc_width - wi->work.g_w / wi->x_fac;
-                            break;
+                /*         case WA_RTPAGE: */
+                /*             wi->left += wi->doc_width - wi->work.g_w / wi->x_fac; */
+                /*             break; */
 
-                        case WA_LFLINE:
-                            wi->left--;
-                            break;
+                /*         case WA_LFLINE: */
+                /*             wi->left--; */
+                /*             break; */
 
-                        case WA_RTLINE:
-                            wi->left++;
-                            break;
-                    } /* switch */
-                    if (wi->top > wi->doc_height - wi->work.g_h / wi->y_fac)
-                    {
-                        wi->top = wi->doc_height - wi->work.g_h / wi->y_fac;
-                    }
-                    if (wi->top < 0) wi->top = 0;
-                    if (wi->left > wi->doc_width - wi->work.g_w / wi->x_fac)
-                    {
-                        wi->left = wi->doc_width - wi->work.g_w / wi->x_fac;
-                    }
-                    if (wi->left < 0) wi->left = 0;
-                    if (wi->scroll) wi->scroll(wi);
-                    do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h);
-                    break;
+                /*         case WA_RTLINE: */
+                /*             wi->left++; */
+                /*             break; */
+                /*     } /\* switch *\/ */
+                /*     if (wi->top > wi->doc_height - wi->work.g_h / wi->y_fac) */
+                /*     { */
+                /*         wi->top = wi->doc_height - wi->work.g_h / wi->y_fac; */
+                /*     } */
+                /*     if (wi->top < 0) wi->top = 0; */
+                /*     if (wi->left > wi->doc_width - wi->work.g_w / wi->x_fac) */
+                /*     { */
+                /*         wi->left = wi->doc_width - wi->work.g_w / wi->x_fac; */
+                /*     } */
+                /*     if (wi->left < 0) wi->left = 0; */
+                /*     if (wi->scroll) wi->scroll(wi); */
+                /*     do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h); */
+                /*     break; */
 
-                case WM_HSLID:
-                    wi->left = (int)((float) msgbuff[4] / 1000.0 * wi->doc_width);
-                    if (wi->scroll) wi->scroll(wi);
-                    do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h);
-                    break;
+                /* case WM_HSLID: */
+                /*     wi->left = (int)((float) msgbuff[4] / 1000.0 * wi->doc_width); */
+                /*     if (wi->scroll) wi->scroll(wi); */
+                /*     do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h); */
+                /*     break; */
 
-                case WM_VSLID:
-                    wi->top = (int)((float) msgbuff[4] / 1000.0 * wi->doc_height);
-                    if (wi->scroll) wi->scroll(wi);
-                    do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h);
-                    break;
+                /* case WM_VSLID: */
+                /*     wi->top = (int)((float) msgbuff[4] / 1000.0 * wi->doc_height); */
+                /*     if (wi->scroll) wi->scroll(wi); */
+                /*     do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h); */
+                /*     break; */
 
                 case MN_SELECTED:
                     handle_menu(gl_menu, msgbuff[3], msgbuff[4]);
