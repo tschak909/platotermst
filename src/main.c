@@ -100,9 +100,9 @@ void multi(void)
                     break;
 
                 case WM_SIZED:
-                /* case WM_MOVED: */
-                /*     if (wi->size) wi->size(wi, msgbuff[4], msgbuff[5], msgbuff[6], msgbuff[7]); */
-                /*     break; */
+                case WM_MOVED:
+                    if (wi->size) wi->size(wi, msgbuff[4], msgbuff[5], msgbuff[6], msgbuff[7]);
+                    break;
 
                 /* case WM_FULLED: */
                 /*     if (wi->full) wi->full(wi); */
