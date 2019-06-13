@@ -234,6 +234,7 @@ void screen_init(void)
       FONT_SIZE_X=8;
       FONT_SIZE_Y=16;
       width=height=512;
+      height+=18;
     }
   
   // Set up window
