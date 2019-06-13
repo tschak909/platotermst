@@ -8,6 +8,8 @@
 #include "screen.h"
 #include <mint/sysbind.h>
 #include <mint/ostruct.h>
+#include <gem.h>
+#include "util.h"
 
 extern ConfigInfo config;
 extern struct window* screen_window;
@@ -59,6 +61,8 @@ IOREC   st_myiorec =
     0, 0, 0, 0, 2, 0
   };
 
+extern short vdi_handle;
+
 void io_init(void)
 {
   // Right now, bare and naive.
@@ -92,8 +96,25 @@ void io_main(void)
 
   if (io_buffer_len>0)
     {
+      graf_mouse(M_OFF,0);
+      wind_update(BEG_UPDATE);
+      set_clipping(vdi_handle,
+		   screen_window->work.g_x,
+		   screen_window->work.g_y,
+		   screen_window->work.g_w,
+		   screen_window->work.g_h,
+		   1);
+      
       ShowPLATO((padByte *)io_buffer,io_buffer_len);
       io_buffer_len=0;
+      set_clipping(vdi_handle,
+		   screen_window->work.g_x,
+		   screen_window->work.g_y,
+		   screen_window->work.g_w,
+		   screen_window->work.g_h,
+		   0);
+      wind_update(END_UPDATE);
+      graf_mouse(M_ON,0);
     }
 }
 

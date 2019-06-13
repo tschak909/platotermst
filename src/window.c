@@ -334,29 +334,31 @@ long stop_timer(void)
  */
 void do_redraw(struct window *wi, short xc, short yc, short wc, short hc)
 {
-	GRECT t1, t2;
-	
-	graf_mouse(M_OFF, 0);
-    wind_update(true);
+  GRECT t1, t2;
+  
+  graf_mouse(M_OFF, 0);
+  wind_update(BEG_UPDATE);
+  
+  t2.g_x = xc;
+  t2.g_y = yc;
+  t2.g_w = wc;
+  t2.g_h = hc;
+  
+  Supexec(start_timer);
+  wind_get(wi->handle, WF_FIRSTXYWH, &t1.g_x, &t1.g_y, &t1.g_w, &t1.g_h);
 
-	t2.g_x = xc;
-	t2.g_y = yc;
-	t2.g_w = wc;
-	t2.g_h = hc;
-
-	Supexec(start_timer);
-	wind_get(wi->handle, WF_FIRSTXYWH, &t1.g_x, &t1.g_y, &t1.g_w, &t1.g_h);
-	while (t1.g_w || t1.g_h)
+  while (t1.g_w || t1.g_h)
+    {
+      if (rc_intersect(&t2, &t1))
 	{
-	  if (rc_intersect(&t2, &t1))
-	  {
-	    set_clipping(vdi_handle, t1.g_x, t1.g_y, t1.g_w, t1.g_h, 1);
-	    if (wi->draw) wi->draw(wi, t1.g_x, t1.g_y, t1.g_w, t1.g_h);
-	  }
-	  wind_get(wi->handle, WF_NEXTXYWH, &t1.g_x, &t1.g_y, &t1.g_w, &t1.g_h);
+	  set_clipping(vdi_handle, t1.g_x, t1.g_y, t1.g_w, t1.g_h, 1);
+	  if (wi->draw) wi->draw(wi, t1.g_x, t1.g_y, t1.g_w, t1.g_h);
 	}
-    wind_update(false);
-	graf_mouse(M_ON, 0);
+      wind_get(wi->handle, WF_NEXTXYWH, &t1.g_x, &t1.g_y, &t1.g_w, &t1.g_h);
+    }
+
+  wind_update(END_UPDATE);
+  graf_mouse(M_ON, 0);
 }
 
 /*

@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
     }  
 
   screen_done();
-
+  
   free_dialogs();
   free_menu();
   free_windows();

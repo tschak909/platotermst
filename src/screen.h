@@ -17,6 +17,11 @@
 #define FGBG_FOREGROUND 0
 #define FGBG_BACKGROUND 1
 
+/**
+ * Restore VDI palette
+ */
+void screen_restore_vdi_palette(void);
+
 struct PLATOTermWindowData
 {
   padByte* platoData;

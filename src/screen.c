@@ -83,24 +83,6 @@ struct vdi_palette_entry saved_palette[16];
  */
 void screen_clip_whole_window_if_not_redrawing(short on)
 {
-  if (being_redrawn==false)
-    {
-      set_clipping(vdi_handle,
-		   screen_window->work.g_x,
-		   screen_window->work.g_y,
-		   screen_window->work.g_w,
-		   screen_window->work.g_h,
-		   on);
-
-      if (on==true)
-	{
-	  wind_update(BEG_UPDATE);
-	}
-      else
-	{
-	  wind_update(END_UPDATE);
-	}
-    }
 }
 
 /**
@@ -181,7 +163,7 @@ void screen_save_vdi_palette(void)
   short i;
   for (i=0;i<16;i++)
     {
-      vq_color(vdi_handle,i,0,color);
+      vq_color(vdi_handle,i,1,color);
       saved_palette[i].r=color[0];
       saved_palette[i].g=color[1];
       saved_palette[i].b=color[2];
@@ -278,11 +260,11 @@ void screen_init(void)
   memcpy(pd->platoData,(padByte *)splash,sizeof(splash));
   pd->platoLen=sizeof(splash);
 
-    do_redraw(screen_window,
-  	    screen_window->work.g_x,
-  	    screen_window->work.g_y,
-  	    screen_window->work.g_w,
-  	    screen_window->work.g_h);
+    /* do_redraw(screen_window, */
+    /* 	    screen_window->work.g_x, */
+    /* 	    screen_window->work.g_y, */
+    /* 	    screen_window->work.g_w, */
+    /* 	    screen_window->work.g_h); */
   
 
 }
