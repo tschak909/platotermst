@@ -260,7 +260,10 @@ int main(int argc, char* argv[])
   init_resource();
   init_menu();
   init_dialogs();
-  
+
+  /* config_init(); */
+  io_init();
+
   screen_init();
   
   butdown = 1;
