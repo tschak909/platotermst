@@ -11,6 +11,8 @@
 #include "menu.h"
 #include "resource.h"
 #include "dialog.h"
+#include "screen.h"
+#include "io.h"
 
 extern struct dialog_handler* about_dialog;
 
