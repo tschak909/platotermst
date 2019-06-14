@@ -58,7 +58,7 @@ IOREC   st_myiorec =
     st_obuf, OBUFSIZ, 0, 0, 0, 1,
     
     /* and the rsr, tsr, flow control stuff */
-    0, 0, 0, 0, 2, 0
+    0, 0, 0, 0, 0, 0
   };
 
 extern short vdi_handle;
@@ -71,7 +71,7 @@ void io_init(void)
 
 void io_configure(void)
 {
-  Rsconf(4,2,-1,-1,-1,-1);
+  Rsconf(2,-1,-1,-1,-1,-1);
   while(Bconstat(1))            /* flush existing buffer */
     Bconin(1);
   st_sysr = (IOREC *)Iorec(0);
@@ -94,6 +94,9 @@ void io_main(void)
 	 io_buffer[io_buffer_len++]=(unsigned char)Bconin(1)&0xFF;
     }
 
+  if (pd->platoLen > 16000)
+    pd->platoLen=0;
+  
   if (io_buffer_len>0)
     {
       graf_mouse(M_OFF,0);
@@ -125,15 +128,15 @@ void io_hang_up(void)
 {
   Bconout(2,0x07);
   Offgibit(0x10); // Lower DTR...
-  io_send_byte(0x2B);
-  io_send_byte(0x2B);
-  io_send_byte(0x2B);
-  io_send_byte('A');
-  io_send_byte('T');
-  io_send_byte('H');
-  io_send_byte(0x0D);
-  io_send_byte(0x0A);
-  Ongibit(0x10);  // and bring it back up.
+  /* io_send_byte(0x2B); */
+  /* io_send_byte(0x2B); */
+  /* io_send_byte(0x2B); */
+  /* io_send_byte('A'); */
+  /* io_send_byte('T'); */
+  /* io_send_byte('H'); */
+  /* io_send_byte(0x0D); */
+  /* io_send_byte(0x0A); */
+  /* Ongibit(0x10);  // and bring it back up. */
 }
 
 /**
