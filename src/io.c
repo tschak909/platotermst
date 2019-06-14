@@ -71,7 +71,7 @@ void io_init(void)
 
 void io_configure(void)
 {
-  Rsconf(2,-1,-1,-1,-1,-1);
+  Rsconf(2,2,-1,-1,-1,-1);
   while(Bconstat(1))            /* flush existing buffer */
     Bconin(1);
   st_sysr = (IOREC *)Iorec(0);

@@ -28,6 +28,8 @@
 padByte terminal_buffer[TERMINAL_BUFFER_SIZE];
 short terminal_buffer_size=0;
 
+extern short work_out[57];
+
 /**
  * protocol.c externals
  */
@@ -263,6 +265,19 @@ extern unsigned short fontm23[2048];
 
 void terminal_char_load(padWord charNum, charData theChar)
 {
+  short width=work_out[0];
+  short height=work_out[1];
+
+  if (width==639 && height==479)
+    terminal_char_load_ttmedres(charNum,theChar);
+  else if (width==639 && height==399)
+    terminal_char_load_hires(charNum,theChar);
+  else if (width==639 && height==199)
+    terminal_char_load_medres(charNum,theChar);
+  else if (width==319 && height==199)
+    terminal_char_load_lores(charNum,theChar);
+  else
+    terminal_char_load_fullres(charNum,theChar);
 }
 
 void terminal_char_load_lores(padWord charNum, charData theChar)
