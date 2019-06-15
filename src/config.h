@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define CONFIG_FILE "plato.set"
+#define CONFIG_FILE "PLATO.SET"
 
 #include <stdbool.h>
 

@@ -13,6 +13,9 @@
 #include "global.h"
 #include "dialog.h"
 #include "touch.h"
+#include "config.h"
+
+ConfigInfo config;
 
 unsigned char already_started=false;
 
@@ -154,6 +157,34 @@ void multi(void)
     exit(0);
 }
 
+void init_prefs_dialog(void)
+{
+  int sbr;
+  switch (config.baud)
+    {
+    case 0: // 19200
+      sbr=8;
+      break;
+    case 1: // 9600
+      sbr=7;
+      break;
+    case 2: // 4800
+      sbr=6;
+      break;
+    case 4: // 2400
+      sbr=5;
+      break;
+    case 7: // 1200
+      sbr=4;
+      break;
+    case 9: // 300
+      sbr=3;
+      break;
+    }
+  
+  prefs_dialog->dialog_object[sbr].ob_state |= OS_SELECTED;
+}
+
 short about_exit_handler(struct dialog_handler *dial, short exit_obj)
 {
     return 0;
@@ -194,9 +225,9 @@ int main(int argc, char* argv[])
   init_menu();
   init_dialogs();
 
-  /* config_init(); */
+  config_init();
   io_init();
-
+  
   screen_init();
   touch_init();
   
@@ -207,6 +238,8 @@ int main(int argc, char* argv[])
   prefs_dialog = create_dialog(2,&prefs_exit_handler,NULL);
   keys_dialog = create_dialog(4,&keys_exit_handler,NULL);
   micro_dialog = create_dialog(5,&micro_exit_handler,NULL);
+
+  init_prefs_dialog();
   
   multi();
 

@@ -1,4 +1,7 @@
 #include "config.h"
+#include <string.h>
+#include <gem.h>
+#include <osbind.h>
 
 ConfigInfo config;
 
@@ -9,13 +12,12 @@ static int baud_rate;
  */
 void config_init(void)
 {
-  /* memset(&config,0,sizeof(ConfigInfo)); */
-  
-  /* if (config_load()==false) */
-  /*   { */
-  /*     config_set_defaults(); */
-  /*     config_save(); */
-  /*   } */
+  memset(&config,0,sizeof(ConfigInfo));
+  if (config_load()==false)
+    {
+      config_set_defaults();
+      config_save();
+    }
 }
 
 /**
@@ -23,15 +25,20 @@ void config_init(void)
  */
 bool config_load(void)
 {
-  /* FILE *fp; */
-  /* fp=fopen(CONFIG_FILE,"r"); */
+  int fp;
 
-  /* if (fp==NULL) */
-  /*   return false; */
-
-  /* fread(&config,1,sizeof(ConfigInfo),fp); */
-  /* fclose(fp); */
-  /* return true; */
+  fp=Fopen(CONFIG_FILE,FO_READ);
+  if (fp>0)
+    {
+      Fread(fp,sizeof(ConfigInfo),&config);
+    }
+  else
+    {
+      return false;
+    }
+  
+  Fclose(fp);
+  return true;
 }
 
 /**
@@ -39,13 +46,18 @@ bool config_load(void)
  */
 void config_save(void)
 {
-  /* FILE *fp; */
-  /* fp=fopen(CONFIG_FILE,"w"); */
-  /* if (!fp) */
-  /*   return; */
+  int fp;
+  
+  fp=Fopen(CONFIG_FILE,FO_RW);
+  if (fp)
+    {
+      Fwrite(fp,sizeof(ConfigInfo),&config);
+    }
+  else
+    return;
+  
+  Fclose(fp);
 
-  /* fwrite(&config,1,sizeof(ConfigInfo),fp); */
-  /* fclose(fp); */
 }
 
 /**
@@ -53,31 +65,7 @@ void config_save(void)
  */
 void config_set_defaults(void)
 {
-  /* config.baud=7; */
-  /* strcpy(config.init_str,"ATZ"); */
-  /* strcpy(config.dial_str,"ATDTIRATA.ONLINE:8005"); */
-}
-
-/**
- * Set desired baud rate
- */
-void config_baud_set(int new_baud)
-{
-  /* baud_rate=new_baud; */
-}
-
-/**
- * Set old baud rate (CANCEL)
- */
-void config_baud_set_old(void)
-{
-  /* baud_rate=config.baud; */
-}
-
-/**
- * Set new baud rate
- */
-void config_baud_set_new(void)
-{
-  /* config.baud=baud_rate; */
+  config.baud=7;
+  strcpy(config.init_str,"ATZ");
+  strcpy(config.dial_str,"ATDTIRATA.ONLINE:8005");
 }
