@@ -160,6 +160,8 @@ void multi(void)
 void init_prefs_dialog(void)
 {
   int sbr;
+
+  // Set radio button for baud.
   switch (config.baud)
     {
     case 0: // 19200
@@ -183,6 +185,15 @@ void init_prefs_dialog(void)
     }
   
   prefs_dialog->dialog_object[sbr].ob_state |= OS_SELECTED;
+
+  memcpy(prefs_dialog->dialog_object[10].ob_spec.tedinfo->te_ptext,
+	 config.init_str,
+	 strlen(config.init_str));
+
+  memcpy(prefs_dialog->dialog_object[13].ob_spec.tedinfo->te_ptext,
+	 config.dial_str,
+	 strlen(config.dial_str));
+  
 }
 
 short about_exit_handler(struct dialog_handler *dial, short exit_obj)
