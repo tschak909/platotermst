@@ -193,7 +193,6 @@ void init_prefs_dialog(void)
   memcpy(prefs_dialog->dialog_object[13].ob_spec.tedinfo->te_ptext,
 	 config.dial_str,
 	 strlen(config.dial_str));
-  
 }
 
 short about_exit_handler(struct dialog_handler *dial, short exit_obj)
@@ -211,9 +210,47 @@ short micro_exit_handler(struct dialog_handler *dial, short exit_obj)
     return 0;
 }
 
-short prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
+bool prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
 {
-    return 0;
+  if (exit_obj==1)
+    {
+      // Otherwise, user selected OK; apply new values.
+      if (dial->dialog_object[3].ob_state & OS_SELECTED)
+	config.baud=9; // 300
+      else if (dial->dialog_object[4].ob_state & OS_SELECTED)
+	config.baud=7; // 1200
+      else if (dial->dialog_object[5].ob_state & OS_SELECTED)
+	config.baud=4; // 2400
+      else if (dial->dialog_object[6].ob_state & OS_SELECTED)
+	config.baud=2; // 4800
+      else if (dial->dialog_object[7].ob_state & OS_SELECTED)
+	config.baud=1; // 9600 
+      else if (dial->dialog_object[8].ob_state & OS_SELECTED)
+	config.baud=0; // 19200
+      else
+	config.baud=0; // might as well.
+
+      // And copy the text fields back into config
+      memcpy(config.init_str,
+	     dial->dialog_object[10].ob_spec.tedinfo->te_ptext,
+	     dial->dialog_object[10].ob_spec.tedinfo->te_txtlen);
+      
+      memcpy(config.dial_str,
+	     dial->dialog_object[13].ob_spec.tedinfo->te_ptext,
+	     dial->dialog_object[13].ob_spec.tedinfo->te_txtlen);
+    }
+
+  // Clear the radio buttons, they will be re-instated
+  // If the dialog is re-opened.
+  dial->dialog_object[3].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[4].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[5].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[6].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[7].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[8].ob_state &= ~OS_SELECTED;
+
+  config_save();
+  return 0;
 }
 
 int main(int argc, char* argv[])
@@ -246,7 +283,7 @@ int main(int argc, char* argv[])
   quit = false;
 
   about_dialog = create_dialog(1,&about_exit_handler,NULL);
-  prefs_dialog = create_dialog(2,&prefs_exit_handler,NULL);
+  prefs_dialog = create_dialog(2,NULL,&prefs_exit_handler);
   keys_dialog = create_dialog(4,&keys_exit_handler,NULL);
   micro_dialog = create_dialog(5,&micro_exit_handler,NULL);
 

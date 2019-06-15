@@ -48,8 +48,8 @@ void config_save(void)
 {
   int fp;
   
-  fp=Fopen(CONFIG_FILE,FO_RW);
-  if (fp)
+  fp=Fcreate(CONFIG_FILE,0);
+  if (fp>0)
     {
       Fwrite(fp,sizeof(ConfigInfo),&config);
     }
@@ -57,7 +57,6 @@ void config_save(void)
     return;
   
   Fclose(fp);
-
 }
 
 /**

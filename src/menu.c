@@ -15,6 +15,7 @@
 #include "io.h"
 
 extern struct dialog_handler* about_dialog;
+extern void init_prefs_dialog(void);
 
 //#define DEBUG
 #ifdef DEBUG
@@ -330,6 +331,7 @@ short handle_menu(OBJECT *menu, short title, short item)
 	switch(item)
 	  {
 	  case 17:
+	    init_prefs_dialog();
 	    prefs_dialog->dialog_do(prefs_dialog);
 	    break;
 	  case 18:
