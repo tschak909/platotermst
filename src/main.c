@@ -238,6 +238,10 @@ bool prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
       memcpy(config.dial_str,
 	     dial->dialog_object[13].ob_spec.tedinfo->te_ptext,
 	     dial->dialog_object[13].ob_spec.tedinfo->te_txtlen);
+
+      config_save();
+      io_done();
+      io_init();
     }
 
   // Clear the radio buttons, they will be re-instated
@@ -249,7 +253,6 @@ bool prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
   dial->dialog_object[7].ob_state &= ~OS_SELECTED;
   dial->dialog_object[8].ob_state &= ~OS_SELECTED;
 
-  config_save();
   return 0;
 }
 

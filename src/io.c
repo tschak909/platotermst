@@ -1,6 +1,6 @@
 #include <gem.h>
 #include <osbind.h>
-
+#include <string.h>
 #include "io.h"
 #include "protocol.h"
 #include "config.h"
@@ -65,13 +65,26 @@ extern short vdi_handle;
 
 void io_init(void)
 {
+  int i;
   // Right now, bare and naive.
   io_configure();
+
+  // Send the init string.
+  for (i=0;i<strlen(config.init_str);i++)
+    {
+      if (config.init_str[i]==0x5F)
+	continue;
+      io_send_byte(config.init_str[i]);
+    }
+
+  // Send CR
+  io_send_byte(0x0D);
+  
 }
 
 void io_configure(void)
 {
-  Rsconf(4,2,-1,-1,-1,-1);
+  Rsconf(config.baud,2,-1,-1,-1,-1);
   while(Bconstat(1))            /* flush existing buffer */
     Bconin(1);
   st_sysr = (IOREC *)Iorec(0);
