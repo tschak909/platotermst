@@ -12,6 +12,7 @@
 #include "resource.h"
 #include "global.h"
 #include "dialog.h"
+#include "touch.h"
 
 unsigned char already_started=false;
 
@@ -40,6 +41,7 @@ static short msgbuff[8];    /* event message buffer */
 static short mx;
 static short my;            /* mouse x and y pos. */
 static short butdown;       /* button state tested for, UP/DOWN */
+static short mb;            /* mouse button */
 static short ret;           /* dummy return variable */
 
 struct dialog_handler* about_dialog;
@@ -66,11 +68,11 @@ void multi(void)
 
     do
     {
-        event = evnt_multi(MU_MESAG /* | MU_BUTTON */ | MU_KEYBD | MU_TIMER,
+        event = evnt_multi(MU_MESAG | MU_BUTTON | MU_KEYBD | MU_TIMER,
                         1, 1, butdown,
                         0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0,
-                        msgbuff, msec, &mx, &my, &ret, &keystate, &keyreturn, &ret);
+                        msgbuff, msec, &mx, &my, &mb, &keystate, &keyreturn, &ret);
 
         wind_update(true);
 
@@ -104,75 +106,6 @@ void multi(void)
                     if (wi->size) wi->size(wi, msgbuff[4], msgbuff[5], msgbuff[6], msgbuff[7]);
                     break;
 
-                /* case WM_FULLED: */
-                /*     if (wi->full) wi->full(wi); */
-                /*     break; */
-
-                /* case WM_CLOSED: */
-                /*     if (wi->del) wi->del(wi); */
-                /*     break; */
-
-                /* case WM_ARROWED: */
-                /*     switch (msgbuff[4]) */
-                /*     { */
-                /*         case WA_UPPAGE: */
-                /*             wi->top -= wi->work.g_h / wi->y_fac; */
-                /*             break; */
-
-                /*         case WA_DNPAGE: */
-                /*             wi->top += wi->work.g_h / wi->y_fac; */
-                /*             break; */
-
-                /*         case WA_UPLINE: */
-                /*             wi->top--; */
-                /*             break; */
-
-                /*         case WA_DNLINE: */
-                /*             wi->top++; */
-                /*             break; */
-
-                /*         case WA_LFPAGE: */
-                /*             wi->left -= wi->doc_width - wi->work.g_w / wi->x_fac; */
-                /*             break; */
-
-                /*         case WA_RTPAGE: */
-                /*             wi->left += wi->doc_width - wi->work.g_w / wi->x_fac; */
-                /*             break; */
-
-                /*         case WA_LFLINE: */
-                /*             wi->left--; */
-                /*             break; */
-
-                /*         case WA_RTLINE: */
-                /*             wi->left++; */
-                /*             break; */
-                /*     } /\* switch *\/ */
-                /*     if (wi->top > wi->doc_height - wi->work.g_h / wi->y_fac) */
-                /*     { */
-                /*         wi->top = wi->doc_height - wi->work.g_h / wi->y_fac; */
-                /*     } */
-                /*     if (wi->top < 0) wi->top = 0; */
-                /*     if (wi->left > wi->doc_width - wi->work.g_w / wi->x_fac) */
-                /*     { */
-                /*         wi->left = wi->doc_width - wi->work.g_w / wi->x_fac; */
-                /*     } */
-                /*     if (wi->left < 0) wi->left = 0; */
-                /*     if (wi->scroll) wi->scroll(wi); */
-                /*     do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h); */
-                /*     break; */
-
-                /* case WM_HSLID: */
-                /*     wi->left = (int)((float) msgbuff[4] / 1000.0 * wi->doc_width); */
-                /*     if (wi->scroll) wi->scroll(wi); */
-                /*     do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h); */
-                /*     break; */
-
-                /* case WM_VSLID: */
-                /*     wi->top = (int)((float) msgbuff[4] / 1000.0 * wi->doc_height); */
-                /*     if (wi->scroll) wi->scroll(wi); */
-                /*     do_redraw(wi, wi->work.g_x, wi->work.g_y, wi->work.g_w, wi->work.g_h); */
-                /*     break; */
-
                 case MN_SELECTED:
                     handle_menu(gl_menu, msgbuff[3], msgbuff[4]);
                     menu_tnormal(gl_menu, msgbuff[3], true);
@@ -191,14 +124,14 @@ void multi(void)
             foreach_window(timer_cb);
         }
         else if (event & MU_BUTTON)
-        {
-            if (butdown)
+        {	  
+	  if (butdown)
             {
-                butdown = 0;
+	      butdown = 0;
             }
-            else
+	  else
             {
-                butdown = 1;
+	      butdown = 1;
             }
         }
         else if (event & MU_KEYBD)
@@ -265,6 +198,7 @@ int main(int argc, char* argv[])
   io_init();
 
   screen_init();
+  touch_init();
   
   butdown = 1;
   quit = false;

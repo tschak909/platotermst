@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <string.h>
 #include "config.h"
 
 ConfigInfo config;
@@ -11,13 +9,13 @@ static int baud_rate;
  */
 void config_init(void)
 {
-  memset(&config,0,sizeof(ConfigInfo));
+  /* memset(&config,0,sizeof(ConfigInfo)); */
   
-  if (config_load()==false)
-    {
-      config_set_defaults();
-      config_save();
-    }
+  /* if (config_load()==false) */
+  /*   { */
+  /*     config_set_defaults(); */
+  /*     config_save(); */
+  /*   } */
 }
 
 /**
@@ -25,15 +23,15 @@ void config_init(void)
  */
 bool config_load(void)
 {
-  FILE *fp;
-  fp=fopen(CONFIG_FILE,"r");
+  /* FILE *fp; */
+  /* fp=fopen(CONFIG_FILE,"r"); */
 
-  if (fp==NULL)
-    return false;
+  /* if (fp==NULL) */
+  /*   return false; */
 
-  fread(&config,1,sizeof(ConfigInfo),fp);
-  fclose(fp);
-  return true;
+  /* fread(&config,1,sizeof(ConfigInfo),fp); */
+  /* fclose(fp); */
+  /* return true; */
 }
 
 /**
@@ -41,13 +39,13 @@ bool config_load(void)
  */
 void config_save(void)
 {
-  FILE *fp;
-  fp=fopen(CONFIG_FILE,"w");
-  if (!fp)
-    return;
+  /* FILE *fp; */
+  /* fp=fopen(CONFIG_FILE,"w"); */
+  /* if (!fp) */
+  /*   return; */
 
-  fwrite(&config,1,sizeof(ConfigInfo),fp);
-  fclose(fp);
+  /* fwrite(&config,1,sizeof(ConfigInfo),fp); */
+  /* fclose(fp); */
 }
 
 /**
@@ -55,9 +53,9 @@ void config_save(void)
  */
 void config_set_defaults(void)
 {
-  config.baud=7;
-  strcpy(config.init_str,"ATZ");
-  strcpy(config.dial_str,"ATDTIRATA.ONLINE:8005");
+  /* config.baud=7; */
+  /* strcpy(config.init_str,"ATZ"); */
+  /* strcpy(config.dial_str,"ATDTIRATA.ONLINE:8005"); */
 }
 
 /**
@@ -65,7 +63,7 @@ void config_set_defaults(void)
  */
 void config_baud_set(int new_baud)
 {
-  baud_rate=new_baud;
+  /* baud_rate=new_baud; */
 }
 
 /**
@@ -73,7 +71,7 @@ void config_baud_set(int new_baud)
  */
 void config_baud_set_old(void)
 {
-  baud_rate=config.baud;
+  /* baud_rate=config.baud; */
 }
 
 /**
@@ -81,5 +79,5 @@ void config_baud_set_old(void)
  */
 void config_baud_set_new(void)
 {
-  config.baud=baud_rate;
+  /* config.baud=baud_rate; */
 }

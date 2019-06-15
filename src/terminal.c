@@ -406,21 +406,20 @@ void terminal_char_load_ttmedres(padWord charNum, charData theChar)
     }
 
   // OR pixel rows together
-  fontm23[(charNum*15)+0]=char_data[0]<<8;
-  fontm23[(charNum*15)+1]=char_data[1]<<8;
-  fontm23[(charNum*15)+2]=char_data[2]<<8;
-  fontm23[(charNum*15)+3]=char_data[3]<<8;
-  fontm23[(charNum*15)+4]=char_data[4]<<8;
-  fontm23[(charNum*15)+5]=char_data[5]<<8;
-  fontm23[(charNum*15)+6]=char_data[6]<<8;
-  fontm23[(charNum*15)+7]=char_data[7]<<8;
-  fontm23[(charNum*15)+8]=char_data[8]<<8;
-  fontm23[(charNum*15)+9]=char_data[9]<<8;
-  fontm23[(charNum*15)+10]=char_data[10]<<8;
-  fontm23[(charNum*15)+11]=char_data[11]<<8;
-  fontm23[(charNum*15)+12]=char_data[12]<<8;
-  fontm23[(charNum*15)+13]=char_data[13]<<8;
-  fontm23[(charNum*15)+14]=(char_data[14]|char_data[15])<<8;
+  fontm23[(charNum*14)+0]=char_data[0]<<8;
+  fontm23[(charNum*14)+1]=char_data[1]<<8;
+  fontm23[(charNum*14)+2]=char_data[2]<<8;
+  fontm23[(charNum*14)+3]=char_data[3]<<8;
+  fontm23[(charNum*14)+4]=char_data[4]<<8;
+  fontm23[(charNum*14)+5]=char_data[5]<<8;
+  fontm23[(charNum*14)+6]=char_data[6]<<8;
+  fontm23[(charNum*14)+7]=char_data[7]<<8;
+  fontm23[(charNum*14)+8]=char_data[8]<<8;
+  fontm23[(charNum*14)+9]=char_data[9]<<8;
+  fontm23[(charNum*14)+10]=char_data[10]<<8;
+  fontm23[(charNum*14)+11]=char_data[11]<<8;
+  fontm23[(charNum*14)+12]=char_data[12]<<8;
+  fontm23[(charNum*14)+13]=(char_data[13]|char_data[14])<<8;
 }
 
 void terminal_char_load_fullres(padWord charnum, charData theChar)

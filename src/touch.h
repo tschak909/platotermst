@@ -20,7 +20,7 @@ void touch_init(void);
 /**
  * touch_main() - Main loop for touch screen
  */
-void touch_main(void);
+void touch_main(short mx, short my);
 
 /**
  * touch_allow - Set whether touchpanel is active or not.
