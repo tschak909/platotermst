@@ -15,7 +15,7 @@ unsigned char key_to_pkey[]={
     PKEY_FONT, /* 0x06 CTRL-F */
     PKEY_DIVIDE, /* 0x07 CTRL-G */
     PKEY_ERASE, /* 0x08 CTRL-H */
-    PKEY_HELP, /* 0x09 CTRL-I */
+    PKEY_TAB, /* 0x09 CTRL-I */
     PKEY_NOKEY, /* 0x0a CTRL-J */
     PKEY_NOKEY, /* 0x0b CTRL-K */
     PKEY_LAB, /* 0x0c CTRL-L */
@@ -33,7 +33,7 @@ unsigned char key_to_pkey[]={
     PKEY_MULTIPLY, /* 0x18 CTRL-X */
     PKEY_SUB, /* 0x19 CTRL-Y */
     PKEY_NOKEY, /* 0x1a CTRL-Z */
-    PKEY_NOKEY, /* 0x1b ESC */
+    PKEY_ASSIGN, /* 0x1b ESC */
     PKEY_NOKEY, /* 0x1c */
     PKEY_NOKEY, /* 0x1d */
     PKEY_NOKEY, /* 0x1e */

@@ -27,21 +27,33 @@ void keyboard_out(unsigned char platoKey)
 
 void keyboard_main(int code, unsigned char shift)
 {
-    unsigned char key=code>>8;
-  if (key==0x3b)
+  unsigned char scan=code>>8;
+  unsigned char key=code&0xFF;
+  
+  if (scan==0x1c)
     {
-      /* MenuEnable(); */
+      // special case for SHIFT-NEXT
+      keyboard_out((shift==0x01 || shift==0x02) ? PKEY_NEXT1 : PKEY_NEXT);
     }
-  else if (key==0x44)
+  else if (scan==0x39)
     {
-      /* appl_form_quit(); */
+      // SPACE vs BACKSPACE
+      keyboard_out((shift==0x01 || shift==0x02) ? PKEY_BACKSPACE : PKEY_SPACE);
     }
-  else if (shift==0x08)
+  else if ((scan==0x23) && (shift==0x04))
     {
-      if (key==0x23) // ALT-H
-	{
-	  /* appl_hang_up(); */
-	}
+      // special case for CTRL-H (HELP)
+      keyboard_out(PKEY_HELP);
+    }
+  else if ((scan==0x23) && ((shift==0x05) || (shift==0x06)))
+    {
+      // special case for SHIFT-CTRL-H (SHIFT-HELP)
+      keyboard_out(PKEY_HELP1);
+    }
+  else if ((scan==0x32) && (shift==0x04))
+    {
+      // special case for CTRL-M (MICRO)
+      keyboard_out(PKEY_MICRO);
     }
   else if (TTY)
     {
