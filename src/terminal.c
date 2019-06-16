@@ -91,6 +91,7 @@ void terminal_set_tty(void)
     TTYLoc.y=495;
   else
     TTYLoc.y = 319;      // Top of screen - one character height
+  screen_update_status();
 }
 
 /**
@@ -100,6 +101,7 @@ void terminal_set_plato(void)
 {
   TTY=false;
   screen_clear();
+  screen_update_status();
 }
 
 /**

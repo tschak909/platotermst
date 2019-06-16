@@ -335,7 +335,8 @@ short handle_menu(OBJECT *menu, short title, short item)
 	    prefs_dialog->dialog_do(prefs_dialog);
 	    break;
 	  case 18:
-	    io_hang_up();
+	    if (form_alert(1,"[2][Hang up?][Yes|No]")==1)
+	      io_hang_up();
 	    break;
 	  case 19:
 	    screen_restore_vdi_palette();

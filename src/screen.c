@@ -1,5 +1,4 @@
 #include "protocol.h"
-#include "math.h"
 #include "screen.h"
 #include "splash.h"
 #include "terminal.h"
@@ -13,6 +12,11 @@
 #include <string.h>
 #include <math.h>
 #include "window.h"
+#include <string.h>
+#include <stdio.h>
+#include "config.h"
+
+extern ConfigInfo config;
 
 extern unsigned short scalex_hires[];
 extern unsigned short scaley_hires[];
@@ -50,6 +54,10 @@ padRGB background_rgb={0,0,0};
 padRGB foreground_rgb={255,255,255};
 unsigned char highest_color_index=0;
 unsigned char being_redrawn;
+short status_x;
+short status_y;
+short status_height;
+short font_correction_y;
 
 extern padBool FastText; /* protocol.c */
 extern unsigned short fontm23[];
@@ -192,6 +200,9 @@ void screen_init(void)
       FONT_SIZE_Y=14;
       yoff=18;
       height-=18;
+      status_x=535;
+      status_y=yoff-4;
+      status_height=14;
     }
   else if (width==639 && height==399)
     {
@@ -203,6 +214,9 @@ void screen_init(void)
       FONT_SIZE_Y=12;
       yoff=18;
       height-=18;
+      status_x=527;
+      status_y=yoff-4;
+      status_height=14;
     }
   else if (width==639 && height==199)
     {
@@ -214,6 +228,9 @@ void screen_init(void)
       height-=10;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=6;
+      status_x=535;
+      status_y=yoff-3;
+      status_height=6;
     }
   else if (width==319 && height==199)
     {
@@ -225,6 +242,10 @@ void screen_init(void)
       FONT_SIZE_Y=6;
       yoff=10;
       height-=10;
+      status_x=216;
+      status_y=yoff-3;
+      status_height=6;
+      font_correction_y=1;
     }
   else
     {
@@ -235,6 +256,9 @@ void screen_init(void)
       FONT_SIZE_Y=16;
       width=height=512;
       height+=18;
+      status_x=535;
+      status_y=yoff-4;
+      status_height=14;
     }
   
   // Set up window
@@ -270,6 +294,66 @@ void screen_init(void)
 
 }
 
+/**
+ * screen_update_status(void) - Update status data
+ */
+void screen_update_status(void)
+{
+  char str[64];
+  char mstr[6];
+  int baud_display;
+  short dummy;
+  
+  switch (config.baud)
+    {
+    case 0:
+      baud_display=19200;
+      break;
+    case 1:
+      baud_display=9600;
+      break;
+    case 2:
+      baud_display=4800;
+      break;
+    case 4:
+      baud_display=2400;
+      break;
+    case 7:
+      baud_display=1200;
+      break;
+    case 9:
+      baud_display=300;
+      break;
+    }
+
+  if (TTY==true)
+    strcpy(mstr,"TTY  ");
+  else
+    strcpy(mstr,"PLATO");
+  
+  sprintf(str,"%s | %5d",mstr,baud_display);
+
+  wind_update(BEG_UPDATE);
+
+  set_clipping(vdi_handle,
+	       screen_window->work.g_x,
+	       screen_window->work.g_y,
+	       screen_window->work.g_w,
+	       screen_window->work.g_h,
+	       0);
+ 
+  vst_height(vdi_handle,status_height,&dummy,&dummy,&dummy,&dummy);
+  v_gtext(vdi_handle,status_x,status_y,str);
+
+  set_clipping(vdi_handle,
+	       screen_window->work.g_x,
+	       screen_window->work.g_y,
+	       screen_window->work.g_w,
+	       screen_window->work.g_h,
+	       1);
+
+  wind_update(END_UPDATE);
+}
 
 /**
  * screen_wait(void) - Sleep for approx 16.67ms
@@ -566,9 +650,9 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
       pxyarray[2]=FONT_SIZE_X-1;
       pxyarray[3]=FONT_SIZE_Y-1;
       pxyarray[4]=screen_x(Coord->x);
-      pxyarray[5]=screen_y(Coord->y)-FONT_SIZE_Y;
+      pxyarray[5]=screen_y(Coord->y)-FONT_SIZE_Y+font_correction_y;
       pxyarray[6]=screen_x(Coord->x)+FONT_SIZE_X-1;
-      pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y-1;
+      pxyarray[7]=screen_y(Coord->y)+FONT_SIZE_Y-1-font_correction_y;
     }
 
   if (ModeBold==padT)

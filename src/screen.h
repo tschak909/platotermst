@@ -29,6 +29,11 @@ struct PLATOTermWindowData
 };
 
 /**
+ * screen_update_status(void) - Update status bar
+ */
+void screen_update_status(void);
+
+/**
  * screen_init() - Set up the screen
  */
 void screen_init(void);

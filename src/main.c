@@ -240,6 +240,7 @@ bool prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
 	     dial->dialog_object[13].ob_spec.tedinfo->te_txtlen);
 
       config_save();
+      screen_update_status();
       io_done();
       io_init();
     }
@@ -281,6 +282,8 @@ int main(int argc, char* argv[])
   
   screen_init();
   touch_init();
+
+  screen_update_status();
   
   butdown = 1;
   quit = false;
