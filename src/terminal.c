@@ -288,7 +288,7 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
   memset(char_data,0,sizeof(char_data));
   memset(PIX_WEIGHTS,0,sizeof(PIX_WEIGHTS));
   memset(&fontm23[charNum*6],0,12);
-  
+  pix_cnt=0;
   // Transpose character data.  
   for (curr_word=0;curr_word<8;curr_word++)
     {
@@ -314,7 +314,7 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
   	  for (v=5; v-->0; )
   	    {
   	      if (PIX_WEIGHTS[TAB_0_25[u]+v] >= PIX_THRESH[TAB_0_25[u]+v])
-  		fontm23[(charNum*6)+u]|=BTAB[v]<<8;
+  		fontm23[(charNum*6)+u]|=BTAB[v];
   	    }
   	}
     }
@@ -323,14 +323,25 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
       // Algorithm B - Sparsely or heavily populated bitmaps
       for (u=16; u-->0; )
 	{
+	  if (pix_cnt >= 85)
+	    char_data[u]^=0xFF;
+
 	  for (v=8; v-->0; )
 	    {
 	      if (char_data[u] & (1<<v))
 		{
-		  fontm23[(charNum*6)+TAB_0_5i[u]]|=BTAB_5[v]<<8;
+		  fontm23[(charNum*6)+TAB_0_5i[u]]|=BTAB_5[v];
 		}
 	    }
 	}
+      if (pix_cnt >= 85)
+      	{
+      	  for (u=6; u-->0; )
+      	    {
+      	      fontm23[(charNum*6)+u]^=0xFF;
+      	      fontm23[(charNum*6)+u]&=0xF8;
+      	    }
+      	}
     }
 }
 

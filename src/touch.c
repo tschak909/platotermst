@@ -1,11 +1,13 @@
 
 #include "touch.h"
+#include "window.h"
 #include <gem.h>
+#include <math.h>
+#include <stdio.h>
 
-static short x_offset;
-static short y_offset;
-static float sx;
-static float sy;
+extern struct window* screen_window;
+extern short vxoff,yoff;
+
 extern short work_out[57];
 
 /**
@@ -13,39 +15,6 @@ extern short work_out[57];
  */
 void touch_init(void)
 {
-  short width=work_out[0];
-  short height=work_out[1];
-  
-  if (width==639)
-    {
-      x_offset=64;
-      sx=1.0;
-    }
-  else if (width==319)
-    {
-      x_offset=0;
-      sx=1.6;
-    }
-  else
-    {
-      x_offset=0;
-      sx=1.0;
-    }
-
-  if (height==479)
-    {
-      height-=18;
-    }
-  else if (height==399)
-    {
-      height-=18;
-    }
-  else if (height==199)
-    {
-      height-=10;
-    }
-
-  sy=512/height;
 }
 
 /**
@@ -56,12 +25,16 @@ void touch_init(void)
 void touch_main(short mx, short my)
 {
   padPt coord;
-  if (mx<x_offset)
-    return;
+  short windowWidth=(work_out[0]>512 ? 512 : screen_window->work.g_w);
+  short windowHeight=screen_window->work.g_h;
 
-  coord.x=(mx-x_offset)*sx;
-  coord.y=(my)*sy;
+  coord.x = ((long)mx * PLATOSize.x) / windowWidth;
+  coord.x-=vxoff;
+  coord.y = (PLATOSize.y - 1) - (((long)my * PLATOSize.y) /
+  				windowHeight);
+  coord.y+=yoff;
 
+  
   Touch(&coord);
 }
 

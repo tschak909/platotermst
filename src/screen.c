@@ -37,7 +37,7 @@ extern unsigned short font_lores[];
 
 short vdi_handle;
 
-short xoff,yoff;
+short xoff,yoff,vxoff;
 short width, height;
 unsigned char CharWide=8;
 unsigned char CharHigh=16;
@@ -198,6 +198,7 @@ void screen_init(void)
       font=font_ttmedres;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=14;
+      vxoff=64;
       yoff=18;
       height-=18;
       status_x=535;
@@ -212,6 +213,7 @@ void screen_init(void)
       font=font_hires;
       FONT_SIZE_X=8;
       FONT_SIZE_Y=12;
+      vxoff=64;
       yoff=18;
       height-=18;
       status_x=527;
@@ -224,6 +226,7 @@ void screen_init(void)
       scalex=scalex_medres;
       scaley=scaley_medres;
       font=font_medres;
+      vxoff=64;
       yoff=10;
       height-=10;
       FONT_SIZE_X=8;
@@ -632,15 +635,15 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
   srcMFDB.fd_nplanes=1;
   if (ModeBold==padT)
     {
-      srcMFDB.fd_w=(FONT_SIZE_X*2)-1;
-      srcMFDB.fd_h=(FONT_SIZE_Y*2)-1;
+      srcMFDB.fd_w=(FONT_SIZE_X<<1)-1;
+      srcMFDB.fd_h=(FONT_SIZE_Y<<1)-1;
       pxyarray[0]=pxyarray[1]=0;
-      pxyarray[2]=(FONT_SIZE_X*2)-1;
-      pxyarray[3]=(FONT_SIZE_Y*2)-1;
+      pxyarray[2]=(FONT_SIZE_X<<1)-1;
+      pxyarray[3]=(FONT_SIZE_Y<<1)-1;
       pxyarray[4]=screen_x(Coord->x);
-      pxyarray[5]=screen_y(Coord->y)-(FONT_SIZE_Y*2);
-      pxyarray[6]=screen_x(Coord->x)+(FONT_SIZE_X*2)-1;
-      pxyarray[7]=screen_y(Coord->y)+(FONT_SIZE_Y*2)-1;      
+      pxyarray[5]=screen_y(Coord->y)-(FONT_SIZE_Y<<1);
+      pxyarray[6]=screen_x(Coord->x)+(FONT_SIZE_X<<1)-1;
+      pxyarray[7]=screen_y(Coord->y)+(FONT_SIZE_Y<<1)-1;      
     }
   else
     {
@@ -665,6 +668,8 @@ void screen_char_draw(padPt* Coord, unsigned char* ch, unsigned char count)
 	  screen_char_bold_shift(bold_char,&curfont[(a*FONT_SIZE_Y)]);
 	  srcMFDB.fd_addr=&bold_char;
 	  vrt_cpyfm(vdi_handle,current_mode,pxyarray,&srcMFDB,&destMFDB,colors);
+	  pxyarray[4]+=FONT_SIZE_X+FONT_SIZE_X;
+	  pxyarray[6]+=FONT_SIZE_X+FONT_SIZE_X+FONT_SIZE_X+FONT_SIZE_X;
 	}
     }
   else

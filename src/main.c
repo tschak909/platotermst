@@ -79,7 +79,19 @@ void multi(void)
 
         wind_update(true);
 
-	if (event & MU_KEYBD)
+        if (event & MU_BUTTON)
+        {
+	  if (butdown)
+            {
+	      butdown = 0;
+            }
+	  else
+            {
+	      butdown = 1;
+            }
+	  touch_main(mx,my);
+        }
+	else if (event & MU_KEYBD)
 	  {
 	    keyboard_main(keyreturn,keystate);
 	  }
@@ -125,17 +137,6 @@ void multi(void)
              * no matter if it's on top or not
              */
             foreach_window(timer_cb);
-        }
-        else if (event & MU_BUTTON)
-        {	  
-	  if (butdown)
-            {
-	      butdown = 0;
-            }
-	  else
-            {
-	      butdown = 1;
-            }
         }
         else if (event & MU_KEYBD)
 	  {
