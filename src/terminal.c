@@ -314,7 +314,7 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
   	  for (v=5; v-->0; )
   	    {
   	      if (PIX_WEIGHTS[TAB_0_25[u]+v] >= PIX_THRESH[TAB_0_25[u]+v])
-  		fontm23[(charNum*6)+u]|=BTAB[v];
+  		fontm23[(charNum*6)+u]|=BTAB[v]<<8;
   	    }
   	}
     }
@@ -330,7 +330,7 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
 	    {
 	      if (char_data[u] & (1<<v))
 		{
-		  fontm23[(charNum*6)+TAB_0_5i[u]]|=BTAB_5[v];
+		  fontm23[(charNum*6)+TAB_0_5i[u]]|=BTAB_5[v]<<8;
 		}
 	    }
 	}
@@ -338,8 +338,8 @@ void terminal_char_load_lores(padWord charNum, charData theChar)
       	{
       	  for (u=6; u-->0; )
       	    {
-      	      fontm23[(charNum*6)+u]^=0xFF;
-      	      fontm23[(charNum*6)+u]&=0xF8;
+      	      fontm23[(charNum*6)+u]^=0xFF<<8;
+      	      fontm23[(charNum*6)+u]&=0xF8<<8;
       	    }
       	}
     }

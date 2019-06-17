@@ -12,7 +12,7 @@ SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-CFLAGS=-m68000 -O0 
+CFLAGS=-m68000 -O2 
 LDFLAGS=-lm -lgem -lcmini -nostdlib -lgcc -lcmini
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
