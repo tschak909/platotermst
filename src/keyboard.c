@@ -45,6 +45,46 @@ void keyboard_main(int code, unsigned char shift)
       // special case for CTRL-H (HELP)
       keyboard_out(PKEY_HELP);
     }
+  else if ((scan==0x62) && ((shift==0x01) || (shift==0x02)))
+    {
+      keyboard_out(PKEY_HELP1); // SHIFT + HELP key
+    }
+  else if (scan==0x62)  // HELP key
+    {
+      keyboard_out(PKEY_HELP);
+    }
+  else if ((scan==0x48) && ((shift==0x01) || (shift==0x02))) // UP arrow
+    {
+      keyboard_out(PKEY_W);
+    }
+  else if ((scan==0x50) && ((shift==0x01) || (shift==0x02))) // DOWN arrow
+    {
+      keyboard_out(PKEY_X);
+    }
+  else if ((scan==0x4B) && ((shift==0x01) || (shift==0x02))) // LEFT arrow
+    {
+      keyboard_out(PKEY_A);
+    }
+  else if ((scan==0x4D) && ((shift==0x01) || (shift==0x02))) // RIGHT arrow
+    {
+      keyboard_out(PKEY_D);
+    }
+  else if (scan==0x48) // UP arrow
+    {
+      keyboard_out(PKEY_w);
+    }
+  else if (scan==0x50) // DOWN arrow
+    {
+      keyboard_out(PKEY_x);
+    }
+  else if (scan==0x4B) // LEFT arrow
+    {
+      keyboard_out(PKEY_a);
+    }
+  else if (scan==0x4D) // RIGHT arrow
+    {
+      keyboard_out(PKEY_d);
+    }
   else if ((scan==0x23) && ((shift==0x05) || (shift==0x06)))
     {
       // special case for SHIFT-CTRL-H (SHIFT-HELP)
