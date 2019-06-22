@@ -139,17 +139,11 @@ void io_main(void)
  */
 void io_hang_up(void)
 {
+  short i;
   Bconout(2,0x07);
-  Offgibit(0x10); // Lower DTR...
-  /* io_send_byte(0x2B); */
-  /* io_send_byte(0x2B); */
-  /* io_send_byte(0x2B); */
-  /* io_send_byte('A'); */
-  /* io_send_byte('T'); */
-  /* io_send_byte('H'); */
-  /* io_send_byte(0x0D); */
-  /* io_send_byte(0x0A); */
-  /* Ongibit(0x10);  // and bring it back up. */
+  Offgibit(0xEF); // Lower DTR...
+  for (i=0;i<10000;i++) {} // sleep.
+  Ongibit(0x10);  // and bring it back up.
 }
 
 /**
