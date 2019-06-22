@@ -114,6 +114,7 @@ void multi(void)
 
                 case WM_UNTOPPED:
                     wi->topped = false;
+		    screen_restore_vdi_palette();
                     break;
 
                 case WM_SIZED:
@@ -282,7 +283,6 @@ int main(int argc, char* argv[])
   io_init();
   
   screen_init();
-  touch_init();
 
   screen_update_status();
   
