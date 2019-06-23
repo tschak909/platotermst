@@ -162,8 +162,55 @@ void multi(void)
     exit(0);
 }
 
-void init_change_dialog(void)
+void init_change_dialog(unsigned char selected_entry, char* name, char* dialout)
 {
+  memset(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,0,24);
+  memset(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,0,24);
+
+  change_dialog->dialog_object[4].ob_spec.tedinfo->te_txtlen = 24;
+  change_dialog->dialog_object[7].ob_spec.tedinfo->te_txtlen = 24;
+
+  if (selected_entry==5)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry1_name,
+	     strlen(config.entry1_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry1_dial,
+	     strlen(config.entry1_dial));
+    }
+  else if (selected_entry==6)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry2_name,
+	     strlen(config.entry2_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry2_dial,
+	     strlen(config.entry2_dial));
+
+    }
+  else if (selected_entry==7)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry3_name,
+	     strlen(config.entry3_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry3_dial,
+	     strlen(config.entry3_dial));
+    }
+  else if (selected_entry==8)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry4_name,
+	     strlen(config.entry4_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry4_dial,
+	     strlen(config.entry4_dial));
+    }
 }
 
 void init_dial_dialog(void)
@@ -278,6 +325,7 @@ short dial_exit_handler(struct dialog_handler *dial, short exit_obj)
     }
   else if (exit_obj==2) // Change
     {
+      init_change_dialog(entry_selected,name,dialout);
       change_dialog->dialog_do(change_dialog);
     }
   else if (exit_obj==3) // Exit

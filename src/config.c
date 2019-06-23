@@ -72,7 +72,7 @@ void config_set_defaults(void)
   strcpy(config.entry4_name,"EMPTY");
   strcpy(config.entry1_dial,"ATDTIRATA.ONLINE:8005");
   strcpy(config.entry2_dial,"ATDTCYBERSERV.ORG:8005");
-  strcpy(config.entry3_dial,"");
-  strcpy(config.entry4_dial,"");
+  strcpy(config.entry3_dial,"ATDTEXAMPLE.COM:8005");
+  strcpy(config.entry4_dial,"ATDTEXAMPLE.COM:8005");
   config.entry_selected=5;
 }
