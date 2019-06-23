@@ -8,7 +8,15 @@
 typedef struct _configInfo {
   int baud;
   char init_str[64];
-  char dial_str[64];
+  unsigned char entry_selected;
+  char entry1_name[24];
+  char entry2_name[24];
+  char entry3_name[24];
+  char entry4_name[24];
+  char entry1_dial[24];
+  char entry2_dial[24];
+  char entry3_dial[24];
+  char entry4_dial[24];
 } ConfigInfo;
 
 /**

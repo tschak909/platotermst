@@ -66,5 +66,13 @@ void config_set_defaults(void)
 {
   config.baud=7;
   strcpy(config.init_str,"ATZ");
-  strcpy(config.dial_str,"ATDTIRATA.ONLINE:8005");
+  strcpy(config.entry1_name,"IRATA.ONLINE");
+  strcpy(config.entry2_name,"CYBER1.ORG");
+  strcpy(config.entry3_name,"EMPTY");
+  strcpy(config.entry4_name,"EMPTY");
+  strcpy(config.entry1_dial,"ATDTIRATA.ONLINE:8005");
+  strcpy(config.entry2_dial,"ATDTCYBERSERV.ORG:8005");
+  strcpy(config.entry3_dial,"");
+  strcpy(config.entry4_dial,"");
+  config.entry_selected=5;
 }
