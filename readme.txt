@@ -1,12 +1,21 @@
-PLATOTerm 0.5 Alpha
-===================
+PLATOTerm 0.8 Beta
+==================
+
+Changes since the 0.5 version of PLATOTERM
+------------------------------------------
+
+* Addition of dial directory functionality
+* Hang-up now works correctly (DTR)
+* Arrow keys mapped to w a d x 
+* Restore palette when untopped
+* Lots of resource fixes.
+* Improved 5x6 font processing (used in ST Low res mode)
 
 What is PLATOTerm?
 ------------------
 
 PLATOTerm is a terminal emulator for your Atari ST to access CYBIS services now 
-available
-on the Internet utilizing a WIFI Modem.
+available on the Internet utilizing a WIFI Modem.
 
 For the purposes of this documentation. PLATO and CYBIS are interchangeable
 names for the same platform.
@@ -123,8 +132,33 @@ communication parameters are set correctly.
 PLATOTerm starts in TTY mode. In this mode, characters are passed directly
 to the modem, and only plain ASCII is received and displayed.
 
-Typically, you will "dial" into the desired CYBIS system, with a command
-such as:
+Typically, you will "dial" into the desired CYBIS system.
+
+Using the Dial directory
+------------------------
+
+The dial directory provides a graphical method of dialing into PLATO
+systems, by selecting one of four dialing entries, and either pressing
+DIAL to connect, CHANGE to alter its entry, or EXIT to leave the
+dialing directory.
+
+Changing an entry
+-----------------
+
+The change button will bring up a dialog form showing the 
+currently selected entry. You can change the name
+of the entry, as well as the command to send to the MODEM to dial
+the entry. 
+
+The dialing command entered will be sent to the modem, as is,
+followed by a carriage return.
+
+Manually dialing
+----------------
+
+If you do not wish to use the dial directory, you can enter the command
+directly to your modem, the moment that PLATOTERM has started, using
+a command, such as:
 
 ATDTCYBERSERV.ORG:8005
 
@@ -141,7 +175,10 @@ and command data.
 Disconnecting
 -------------
 
-Press ALT-H to disconnect.
+By selecting Hang Up from the Terminal... menu, you will receive a 
+confirmation alert, asking for confirmation of hanging up. 
+Pressing yes, will cause DTR to lower, signalling them MODEM to
+hang up the connection.
 
 PLATO Keyboard
 --------------
