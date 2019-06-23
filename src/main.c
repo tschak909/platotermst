@@ -55,6 +55,7 @@ struct dialog_handler* dial_dialog;
 struct dialog_handler* change_dialog;
 
 bool quit;
+unsigned char dial_dialog_active;
 
 int timer_cb(struct window *wi)
 {
@@ -237,35 +238,43 @@ short dial_exit_handler(struct dialog_handler *dial, short exit_obj)
 {
   char name[24];
   char dialout[24];
+  unsigned char entry_selected;
   unsigned char i;
-
+  
   // First, figure out which dial radio is selected
   if (dial->dialog_object[5].ob_state & OS_SELECTED)
     {
       strcpy(name,config.entry1_name);
       strcpy(dialout,config.entry1_dial);
+      entry_selected=5;
     }
   else if (dial->dialog_object[6].ob_state & OS_SELECTED)
     {
       strcpy(name,config.entry2_name);
       strcpy(dialout,config.entry2_dial);
+      entry_selected=6;
     }
   else if (dial->dialog_object[7].ob_state & OS_SELECTED)
     {
       strcpy(name,config.entry3_name);
       strcpy(dialout,config.entry3_dial);
+      entry_selected=7;
     }
   else if (dial->dialog_object[8].ob_state & OS_SELECTED)
     {
       strcpy(name,config.entry3_name);
       strcpy(dialout,config.entry4_dial);
+      entry_selected=8;
     }
   
   if (exit_obj==1) // Dial
     {
+      config.entry_selected=entry_selected;
+      config_save();
       for (i=0;i<strlen(dialout);i++)
 	io_send_byte(dialout[i]);
       io_send_byte(0x0D);
+      dial_dialog_active=0;
     }
   else if (exit_obj==2) // Change
     {
@@ -273,6 +282,7 @@ short dial_exit_handler(struct dialog_handler *dial, short exit_obj)
     }
   else if (exit_obj==3) // Exit
     {
+      dial_dialog_active=0;
     }
   
   // Clear the radio buttons, they will be re-instantiated if needed.
@@ -284,7 +294,7 @@ short dial_exit_handler(struct dialog_handler *dial, short exit_obj)
   return 0;
 }
 
-bool prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
+short prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
 {
   if (exit_obj==1)
     {
@@ -358,7 +368,7 @@ int main(int argc, char* argv[])
   quit = false;
 
   about_dialog = create_dialog(1,&about_exit_handler,NULL);
-  prefs_dialog = create_dialog(2,NULL,&prefs_exit_handler);
+  prefs_dialog = create_dialog(2,&prefs_exit_handler,NULL);
   keys_dialog = create_dialog(4,&keys_exit_handler,NULL);
   micro_dialog = create_dialog(5,&micro_exit_handler,NULL);
   dial_dialog = create_dialog(6,&dial_exit_handler,NULL);

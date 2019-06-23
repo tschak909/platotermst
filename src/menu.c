@@ -17,6 +17,7 @@
 extern struct dialog_handler* about_dialog;
 extern struct dialog_handler* dial_dialog;
 extern struct dialog_handler* change_dialog;
+extern unsigned char dial_dialog_active;
 
 extern void init_prefs_dialog(void);
 extern void init_dial_dialog(void);
@@ -335,8 +336,12 @@ short handle_menu(OBJECT *menu, short title, short item)
 	switch(item)
 	  {
 	  case 17:
-	    init_dial_dialog();
-	    dial_dialog->dialog_do(dial_dialog);
+	    dial_dialog_active=1;
+	    while (dial_dialog_active)
+	      {
+		init_dial_dialog();
+		dial_dialog->dialog_do(dial_dialog);
+	      }
 	    break;
 	  case 18:
 	    init_prefs_dialog();
