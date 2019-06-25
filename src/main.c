@@ -51,8 +51,11 @@ struct dialog_handler* about_dialog;
 struct dialog_handler* prefs_dialog;
 struct dialog_handler* keys_dialog;
 struct dialog_handler* micro_dialog;
+struct dialog_handler* dial_dialog;
+struct dialog_handler* change_dialog;
 
 bool quit;
+unsigned char dial_dialog_active;
 
 int timer_cb(struct window *wi)
 {
@@ -156,7 +159,69 @@ void multi(void)
     } while (!quit);
     
     free_windows();
-    exit(0);
+}
+
+void init_change_dialog(unsigned char selected_entry, char* name, char* dialout)
+{
+  memset(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,0,24);
+  memset(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,0,24);
+
+  change_dialog->dialog_object[4].ob_spec.tedinfo->te_txtlen = 24;
+  change_dialog->dialog_object[7].ob_spec.tedinfo->te_txtlen = 24;
+
+  if (selected_entry==5)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry1_name,
+	     strlen(config.entry1_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry1_dial,
+	     strlen(config.entry1_dial));
+    }
+  else if (selected_entry==6)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry2_name,
+	     strlen(config.entry2_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry2_dial,
+	     strlen(config.entry2_dial));
+
+    }
+  else if (selected_entry==7)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry3_name,
+	     strlen(config.entry3_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry3_dial,
+	     strlen(config.entry3_dial));
+    }
+  else if (selected_entry==8)
+    {
+      memcpy(change_dialog->dialog_object[4].ob_spec.tedinfo->te_ptext,
+	     config.entry4_name,
+	     strlen(config.entry4_name));
+
+      memcpy(change_dialog->dialog_object[7].ob_spec.tedinfo->te_ptext,
+	     config.entry4_dial,
+	     strlen(config.entry4_dial));
+    }
+}
+
+void init_dial_dialog(void)
+{
+  dial_dialog->dialog_object[5].ob_spec = (OBSPEC)config.entry1_name;
+  dial_dialog->dialog_object[6].ob_spec = (OBSPEC)config.entry2_name;
+  dial_dialog->dialog_object[7].ob_spec = (OBSPEC)config.entry3_name;
+  dial_dialog->dialog_object[8].ob_spec = (OBSPEC)config.entry4_name;
+  
+  // Select the initial entry to dial.
+  dial_dialog->dialog_object[config.entry_selected].ob_state |= OS_SELECTED;
+  
 }
 
 void init_prefs_dialog(void)
@@ -188,13 +253,13 @@ void init_prefs_dialog(void)
   
   prefs_dialog->dialog_object[sbr].ob_state |= OS_SELECTED;
 
+  memset(prefs_dialog->dialog_object[10].ob_spec.tedinfo->te_ptext,0,
+	 prefs_dialog->dialog_object[10].ob_spec.tedinfo->te_txtlen);
+  
   memcpy(prefs_dialog->dialog_object[10].ob_spec.tedinfo->te_ptext,
 	 config.init_str,
 	 strlen(config.init_str));
-
-  memcpy(prefs_dialog->dialog_object[13].ob_spec.tedinfo->te_ptext,
-	 config.dial_str,
-	 strlen(config.dial_str));
+  
 }
 
 short about_exit_handler(struct dialog_handler *dial, short exit_obj)
@@ -212,7 +277,116 @@ short micro_exit_handler(struct dialog_handler *dial, short exit_obj)
     return 0;
 }
 
-bool prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
+void change_fix_empty_entries(struct dialog_handler *dial)
+{
+  if (strlen(dial->dialog_object[4].ob_spec.tedinfo->te_ptext)==0)
+    strcpy(dial->dialog_object[4].ob_spec.tedinfo->te_ptext,"EMPTY");
+  if (strlen(dial->dialog_object[7].ob_spec.tedinfo->te_ptext)==0)
+    strcpy(dial->dialog_object[7].ob_spec.tedinfo->te_ptext,"ATDTEXAMPLE.COM:8005");
+}
+
+short change_exit_handler(struct dialog_handler *dial, short exit_obj)
+{
+  if (exit_obj==8) // OK
+    {
+      // update the config entry.
+      change_fix_empty_entries(dial);
+      if (dial_dialog->dialog_object[5].ob_state & OS_SELECTED)
+	{
+	  strcpy(config.entry1_name,
+		 dial->dialog_object[4].ob_spec.tedinfo->te_ptext);
+	  strcpy(config.entry1_dial,
+		 dial->dialog_object[7].ob_spec.tedinfo->te_ptext);
+	}
+      else if (dial_dialog->dialog_object[6].ob_state & OS_SELECTED)
+	{
+	  strcpy(config.entry2_name,
+		 dial->dialog_object[4].ob_spec.tedinfo->te_ptext);
+	  strcpy(config.entry2_dial,
+		 dial->dialog_object[7].ob_spec.tedinfo->te_ptext);
+	}
+      else if (dial_dialog->dialog_object[7].ob_state & OS_SELECTED)
+	{
+	  strcpy(config.entry3_name,
+		 dial->dialog_object[4].ob_spec.tedinfo->te_ptext);
+	  strcpy(config.entry3_dial,
+		 dial->dialog_object[7].ob_spec.tedinfo->te_ptext);
+	}
+      else if (dial_dialog->dialog_object[8].ob_state & OS_SELECTED)
+	{
+	  strcpy(config.entry4_name,
+		 dial->dialog_object[4].ob_spec.tedinfo->te_ptext);
+	  strcpy(config.entry4_dial,
+		 dial->dialog_object[7].ob_spec.tedinfo->te_ptext);
+	}
+      config_save();
+    }
+    
+  return 0;
+}
+
+short dial_exit_handler(struct dialog_handler *dial, short exit_obj)
+{
+  char name[24];
+  char dialout[24];
+  unsigned char entry_selected;
+  unsigned char i;
+  
+  // First, figure out which dial radio is selected
+  if (dial->dialog_object[5].ob_state & OS_SELECTED)
+    {
+      strcpy(name,config.entry1_name);
+      strcpy(dialout,config.entry1_dial);
+      entry_selected=5;
+    }
+  else if (dial->dialog_object[6].ob_state & OS_SELECTED)
+    {
+      strcpy(name,config.entry2_name);
+      strcpy(dialout,config.entry2_dial);
+      entry_selected=6;
+    }
+  else if (dial->dialog_object[7].ob_state & OS_SELECTED)
+    {
+      strcpy(name,config.entry3_name);
+      strcpy(dialout,config.entry3_dial);
+      entry_selected=7;
+    }
+  else if (dial->dialog_object[8].ob_state & OS_SELECTED)
+    {
+      strcpy(name,config.entry4_name);
+      strcpy(dialout,config.entry4_dial);
+      entry_selected=8;
+    }
+  
+  if (exit_obj==1) // Dial
+    {
+      config.entry_selected=entry_selected;
+      config_save();
+      for (i=0;i<strlen(dialout);i++)
+	io_send_byte(dialout[i]);
+      io_send_byte(0x0D);
+      dial_dialog_active=0;
+    }
+  else if (exit_obj==2) // Change
+    {
+      init_change_dialog(entry_selected,name,dialout);
+      change_dialog->dialog_do(change_dialog);
+    }
+  else if (exit_obj==3) // Exit
+    {
+      dial_dialog_active=0;
+    }
+  
+  // Clear the radio buttons, they will be re-instantiated if needed.
+  dial->dialog_object[5].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[6].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[7].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[8].ob_state &= ~OS_SELECTED;
+  
+  return 0;
+}
+
+short prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
 {
   if (exit_obj==1)
     {
@@ -233,14 +407,9 @@ bool prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
 	config.baud=0; // might as well.
 
       // And copy the text fields back into config
-      memcpy(config.init_str,
-	     dial->dialog_object[10].ob_spec.tedinfo->te_ptext,
-	     dial->dialog_object[10].ob_spec.tedinfo->te_txtlen);
+      strcpy(config.init_str,
+	     dial->dialog_object[10].ob_spec.tedinfo->te_ptext);
       
-      memcpy(config.dial_str,
-	     dial->dialog_object[13].ob_spec.tedinfo->te_ptext,
-	     dial->dialog_object[13].ob_spec.tedinfo->te_txtlen);
-
       config_save();
       screen_update_status();
       io_done();
@@ -290,10 +459,12 @@ int main(int argc, char* argv[])
   quit = false;
 
   about_dialog = create_dialog(1,&about_exit_handler,NULL);
-  prefs_dialog = create_dialog(2,NULL,&prefs_exit_handler);
+  prefs_dialog = create_dialog(2,&prefs_exit_handler,NULL);
   keys_dialog = create_dialog(4,&keys_exit_handler,NULL);
   micro_dialog = create_dialog(5,&micro_exit_handler,NULL);
-
+  dial_dialog = create_dialog(6,&dial_exit_handler,NULL);
+  change_dialog = create_dialog(7,&change_exit_handler,NULL);
+  
   init_prefs_dialog();
   
   multi();
@@ -312,6 +483,6 @@ int main(int argc, char* argv[])
   free_resource();
   free_util();
   free_global();
-  
+
   return 0;
 }

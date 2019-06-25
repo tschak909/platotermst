@@ -142,6 +142,12 @@ void dialog_do(struct dialog_handler *dial)
              */
             cont = dial->touchexit_callback(dial, exit_obj);
         }
+
+	if (dial->exit_callback!=NULL)
+	  {
+	    cont=dial->exit_callback(dial, exit_obj);
+	  }
+	
     } while (cont);
 
 	form_dial(FMD_FINISH, x, y, w, h, x, y, w, h);

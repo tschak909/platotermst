@@ -15,7 +15,12 @@
 #include "io.h"
 
 extern struct dialog_handler* about_dialog;
+extern struct dialog_handler* dial_dialog;
+extern struct dialog_handler* change_dialog;
+extern unsigned char dial_dialog_active;
+
 extern void init_prefs_dialog(void);
+extern void init_dial_dialog(void);
 
 //#define DEBUG
 #ifdef DEBUG
@@ -331,14 +336,24 @@ short handle_menu(OBJECT *menu, short title, short item)
 	switch(item)
 	  {
 	  case 17:
+	    dial_dialog_active=1;
+	    screen_restore_vdi_palette();
+	    while (dial_dialog_active)
+	      {
+		init_dial_dialog();
+		dial_dialog->dialog_do(dial_dialog);
+	      }
+	    break;
+	  case 18:
+	    screen_restore_vdi_palette();
 	    init_prefs_dialog();
 	    prefs_dialog->dialog_do(prefs_dialog);
 	    break;
-	  case 18:
+	  case 19:
 	    if (form_alert(1,"[2][Hang up?][Yes|No]")==1)
 	      io_hang_up();
 	    break;
-	  case 19:
+	  case 20:
 	    screen_restore_vdi_palette();
 	    quit=true;
 	    break;
@@ -347,10 +362,10 @@ short handle_menu(OBJECT *menu, short title, short item)
       case 5:
 	switch(item)
 	  {
-	  case 21:
+	  case 22:
 	    keys_dialog->dialog_do(keys_dialog);
 	    break;
-	  case 22:
+	  case 23:
 	    micro_dialog->dialog_do(micro_dialog);
 	    break;
 	  }
