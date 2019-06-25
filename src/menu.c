@@ -337,6 +337,7 @@ short handle_menu(OBJECT *menu, short title, short item)
 	  {
 	  case 17:
 	    dial_dialog_active=1;
+	    screen_restore_vdi_palette();
 	    while (dial_dialog_active)
 	      {
 		init_dial_dialog();
@@ -344,6 +345,7 @@ short handle_menu(OBJECT *menu, short title, short item)
 	      }
 	    break;
 	  case 18:
+	    screen_restore_vdi_palette();
 	    init_prefs_dialog();
 	    prefs_dialog->dialog_do(prefs_dialog);
 	    break;
