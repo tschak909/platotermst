@@ -84,6 +84,7 @@ void io_init(void)
 
 void io_configure(void)
 {
+  Bconmap(config.serial_port);
   Rsconf(config.baud,2,-1,-1,-1,-1);
   while(Bconstat(1))            /* flush existing buffer */
     Bconin(1);

@@ -6,7 +6,8 @@
 #include <stdbool.h>
 
 typedef struct _configInfo {
-  int baud;
+  unsigned char baud;
+  unsigned char serial_port;
   char init_str[64];
   unsigned char entry_selected;
   char entry1_name[32];

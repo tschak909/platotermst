@@ -227,7 +227,8 @@ void init_dial_dialog(void)
 void init_prefs_dialog(void)
 {
   int sbr;
-
+  int ssp;
+  
   // Set radio button for baud.
   switch (config.baud)
     {
@@ -250,9 +251,26 @@ void init_prefs_dialog(void)
       sbr=3;
       break;
     }
+
+  switch (config.serial_port)
+    {
+    case 6:
+      ssp=14;
+      break;
+    case 7:
+      ssp=15;
+      break;
+    case 8:
+      ssp=16;
+      break;
+    case 9:
+      ssp=17;
+      break;
+    }
   
   prefs_dialog->dialog_object[sbr].ob_state |= OS_SELECTED;
-
+  prefs_dialog->dialog_object[ssp].ob_state |= OS_SELECTED;
+  
   memset(prefs_dialog->dialog_object[10].ob_spec.tedinfo->te_ptext,0,
 	 prefs_dialog->dialog_object[10].ob_spec.tedinfo->te_txtlen);
   
@@ -406,6 +424,16 @@ short prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
       else
 	config.baud=0; // might as well.
 
+      // Serial port radio dialog.
+      if (dial->dialog_object[14].ob_state & OS_SELECTED)
+	config.serial_port=6;
+      else if (dial->dialog_object[15].ob_state & OS_SELECTED)
+	config.serial_port=7;
+      else if (dial->dialog_object[16].ob_state & OS_SELECTED)
+	config.serial_port=8;
+      else if (dial->dialog_object[17].ob_state & OS_SELECTED)
+	config.serial_port=9;
+      
       // And copy the text fields back into config
       strcpy(config.init_str,
 	     dial->dialog_object[10].ob_spec.tedinfo->te_ptext);
@@ -424,6 +452,10 @@ short prefs_exit_handler(struct dialog_handler *dial, short exit_obj)
   dial->dialog_object[6].ob_state &= ~OS_SELECTED;
   dial->dialog_object[7].ob_state &= ~OS_SELECTED;
   dial->dialog_object[8].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[14].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[15].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[16].ob_state &= ~OS_SELECTED;
+  dial->dialog_object[17].ob_state &= ~OS_SELECTED;
 
   return 0;
 }

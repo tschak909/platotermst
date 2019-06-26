@@ -65,6 +65,7 @@ void config_save(void)
 void config_set_defaults(void)
 {
   config.baud=7;
+  config.serial_port=6;
   strcpy(config.init_str,"ATZ");
   strcpy(config.entry1_name,"IRATA.ONLINE");
   strcpy(config.entry2_name,"CYBER1.ORG");
