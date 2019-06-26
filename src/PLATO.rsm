@@ -2,7 +2,7 @@ ResourceMaster v3.65
 #C 8@0@0@0@
 #N 99@32@AZAaza___  _@AZAaza090___  _@@_@
 #R 0@0@2@1@2@1@
-#M 10010100@0@7728@529@
+#M 10010100@0@7728@530@
 #T 0@1@Menu@Menu@24@Menu@
 #T 1@2@AboutBox@@7@@
 #T 2@2@Prefs@@18@@
@@ -12,4 +12,4 @@ ResourceMaster v3.65
 #T 5@2@MicroKeys@@97@@
 #T 6@2@Dial_Directory@@14@@
 #T 7@2@Change_Dial@@10@@
-#c 18750@
+#c 18736@
