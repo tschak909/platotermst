@@ -29,8 +29,12 @@ void keyboard_main(int code, unsigned char shift)
 {
   unsigned char scan=code>>8;
   unsigned char key=code&0xFF;
-  
-  if (scan==0x1c)
+
+  if (TTY)
+    {
+      keyboard_out_tty(code&0xff);
+    }
+  else if (scan==0x1c)
     {
       // special case for SHIFT-NEXT
       keyboard_out((shift==0x01 || shift==0x02) ? PKEY_NEXT1 : PKEY_NEXT);
@@ -94,10 +98,6 @@ void keyboard_main(int code, unsigned char shift)
     {
       // special case for CTRL-M (MICRO)
       keyboard_out(PKEY_MICRO);
-    }
-  else if (TTY)
-    {
-      keyboard_out_tty(code&0xff);
     }
   else if (shift==0x05 || shift==0x06)
     {
